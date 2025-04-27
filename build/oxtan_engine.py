@@ -30,7 +30,7 @@ def tokenize(code):
             tokens.append(code[start:i])
             i += 1
             continue
-        if var in '()=' or '+-':
+        if var in '()=' or var in '+-*/':
             tokens.append(var)
             i += 1
             continue
@@ -40,6 +40,25 @@ def tokenize(code):
 
 variables = {}
 
+def parse_expression(tokens, start=0):
+    if start >= len(tokens):
+        return None, start
+    
+    if tokens[start].isdigit() or tokens[start].isalpha():
+        left = tokens[start]
+        start += 1
+        
+        if start < len(tokens) and tokens[start] in '+-*/':
+            op = tokens[start]
+            start += 1
+            if start < len(tokens) and (tokens[start].isdigit() or tokens[start].isalpha()):
+                right = tokens[start]
+                start += 1
+                return {"type": "math", "left": left, "op": op, "right": right}, start
+        return left, start
+    
+    return None, start
+
 def parse(tokens):
     if not tokens:
         return None
@@ -47,17 +66,38 @@ def parse(tokens):
         return {"type": "assign", "var": tokens[0], "value": tokens[2]}
     if len(tokens) == 3 and tokens[1] == "==":
         return {"type": "compare", "left": tokens[0], "right": tokens[2]}
-    if len(tokens) == 3 and tokens[1] in ("+", "-"):
+    if len(tokens) == 3 and tokens[1] in ("+", "-", "*", "/"):
         return {"type": "math", "left": tokens[0], "op": tokens[1], "right": tokens[2]}
-    if len(tokens) == 4 and tokens[0] == "say" and tokens[1] == "(" and tokens[3] == ")":
-        return {"type": "say", "value": tokens[2]}
+    if tokens[0] == "say" and tokens[1] == "(" and tokens[-1] == ")":
+        expr, end = parse_expression(tokens[2:-1])
+        if end == len(tokens[2:-1]):
+            return {"type": "say", "value": expr}
     print(f"Error: Invalid statement {tokens} in OXTAN")
     return None
 
 def resolve(value):
-    if value.isdigit():
-        return int(value)
-    return variables.get(value, None)
+    if isinstance(value, dict) and value["type"] == "math":
+        left = resolve(value["left"])
+        right = resolve(value["right"])
+        if left is None or right is None:
+            print(f"Error: Unknown variable in math operation")
+            return None
+        if value["op"] == "+":
+            return left + right
+        elif value["op"] == "-":
+            return left - right
+        elif value["op"] == "*":
+            return left * right
+        elif value["op"] == "/":
+            if right == 0:
+                print("Error: Division by zero")
+                return None
+            return left / right
+    if isinstance(value, str):
+        if value.isdigit():
+            return int(value)
+        return variables.get(value, value)
+    return value
 
 def execute(ast):
     if not ast:
@@ -74,29 +114,27 @@ def execute(ast):
         right = resolve(ast["right"])
         print(left == right)
     elif ast["type"] == "math":
-        left = resolve(ast["left"])
-        right = resolve(ast["right"])
-        if left is None or right is None:
-            print(f"Error: Unknown variable in math operation")
-            return
-        if ast["op"] == "+":
-            print(left + right)
-        else:
-            print(left - right)
+        result = resolve(ast)
+        if result is not None:
+            print(result)
     elif ast["type"] == "say":
         val = resolve(ast["value"])
         if val is None:
-            val = ast["value"]
+            print(f"Error: Cannot say unknown value")
+            return
         print(val)
 
 def oxtan_run():
     print("OXTAN Language (type 'exit' to quit, 'cmd' to show all commands)")
     commands = [
         "say('text') - Print text to the console",
+        "say(x + y) - Print result of expression",
         "x = value - Assign a value to a variable",
         "x == value - Compare a variable with a value",
         "x + y - Add two variables or values",
-        "x - y - Subtract two variables or values"
+        "x - y - Subtract two variables or values",
+        "x * y - Multiply two variables or values",
+        "x / y - Divide two variables or values"
     ]
     while True:
         try:
@@ -106,7 +144,7 @@ def oxtan_run():
             if code.lower() == "cmd":
                 print("Available commands:")
                 for command in commands:
-                    print(f"  {command}")
+                    print(f"{command}")
                 continue
             tokens = tokenize(code)
             if tokens:
@@ -114,9 +152,9 @@ def oxtan_run():
                 if ast:
                     execute(ast)
                 else:
-                    print("Wrong typo, Check out cmd")
+                    print("Wrong typo?, Type cmd")
             else:
-                print("Wrong typo, Check out cmd")
+                print("Wrong typo?, Type cmd")
         except KeyboardInterrupt:
             print("\nExiting OXTAN...")
             break
