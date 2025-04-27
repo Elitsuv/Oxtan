@@ -30,7 +30,7 @@ def tokenize(code):
             tokens.append(code[start:i])
             i += 1
             continue
-        if var in '()':
+        if var in '()=' or '+-':
             tokens.append(var)
             i += 1
             continue
@@ -38,34 +38,85 @@ def tokenize(code):
         return []
     return tokens
 
+variables = {}
+
 def parse(tokens):
-    if len(tokens) != 4:
-        print("Error: Wrong number of tokens in OXTAN")
+    if not tokens:
         return None
-    if tokens[0] != "say" or tokens[1] != "(" or tokens[3] != ")":
-        print("Error: Must be say('text'), say(\"text\"), or say(number) in OXTAN")
-        return None
-    value = tokens[2]
+    if len(tokens) == 3 and tokens[1] == "=":
+        return {"type": "assign", "var": tokens[0], "value": tokens[2]}
+    if len(tokens) == 3 and tokens[1] == "==":
+        return {"type": "compare", "left": tokens[0], "right": tokens[2]}
+    if len(tokens) == 3 and tokens[1] in ("+", "-"):
+        return {"type": "math", "left": tokens[0], "op": tokens[1], "right": tokens[2]}
+    if len(tokens) == 4 and tokens[0] == "say" and tokens[1] == "(" and tokens[3] == ")":
+        return {"type": "say", "value": tokens[2]}
+    print(f"Error: Invalid statement {tokens} in OXTAN")
+    return None
+
+def resolve(value):
     if value.isdigit():
-        value = int(value)
-    ast = {"type": "say", "value": value}
-    return ast
+        return int(value)
+    return variables.get(value, None)
 
 def execute(ast):
-    if ast and ast["type"] == "say":
-        print(ast["value"])
+    if not ast:
+        return
+    if ast["type"] == "assign":
+        val = resolve(ast["value"])
+        if val is None:
+            print(f"Error: Cannot assign unknown value '{ast['value']}'")
+            return
+        variables[ast["var"]] = val
+        print(f"Assigned {ast['var']} = {val}")
+    elif ast["type"] == "compare":
+        left = resolve(ast["left"])
+        right = resolve(ast["right"])
+        print(left == right)
+    elif ast["type"] == "math":
+        left = resolve(ast["left"])
+        right = resolve(ast["right"])
+        if left is None or right is None:
+            print(f"Error: Unknown variable in math operation")
+            return
+        if ast["op"] == "+":
+            print(left + right)
+        else:
+            print(left - right)
+    elif ast["type"] == "say":
+        val = resolve(ast["value"])
+        if val is None:
+            val = ast["value"]
+        print(val)
 
 def oxtan_run():
-    print("OXTAN Language (type 'exit' to quit)")
+    print("OXTAN Language (type 'exit' to quit, 'cmd' to show all commands)")
+    commands = [
+        "say('text') - Print text to the console",
+        "x = value - Assign a value to a variable",
+        "x == value - Compare a variable with a value",
+        "x + y - Add two variables or values",
+        "x - y - Subtract two variables or values"
+    ]
     while True:
         try:
             code = input("> ")
             if code.lower() == "exit":
                 break
+            if code.lower() == "cmd":
+                print("Available commands:")
+                for command in commands:
+                    print(f"  {command}")
+                continue
             tokens = tokenize(code)
             if tokens:
                 ast = parse(tokens)
-                execute(ast)
+                if ast:
+                    execute(ast)
+                else:
+                    print("Wrong typo, Check out cmd")
+            else:
+                print("Wrong typo, Check out cmd")
         except KeyboardInterrupt:
             print("\nExiting OXTAN...")
             break
