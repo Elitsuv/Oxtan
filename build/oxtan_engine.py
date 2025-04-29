@@ -1,3 +1,5 @@
+variables = {}
+
 def tokenize(code):
     tokens = []
     i = 0
@@ -8,7 +10,7 @@ def tokenize(code):
             continue
         if var.isalpha():
             start = i
-            while i < len(code) and code[i].isalpha():
+            while i < len(code) and (code[i].isalpha() or code[i].isdigit()):
                 i += 1
             tokens.append(code[start:i])
             continue
@@ -27,8 +29,8 @@ def tokenize(code):
             if i >= len(code):
                 print("Error: Missing closing quote in OXTAN")
                 return []
-            tokens.append(code[start:i])
-            i += 1
+            tokens.append(code[start:i])  # Include the string as is, with spaces
+            i += 1  # Skip the closing quote
             continue
         if var in '()=' or var in '+-*/':
             tokens.append(var)
@@ -37,8 +39,6 @@ def tokenize(code):
         print(f"Error: Invalid character '{var}' in OXTAN")
         return []
     return tokens
-
-variables = {}
 
 def parse_expression(tokens, start=0):
     if start >= len(tokens):
@@ -69,10 +69,19 @@ def parse(tokens):
     if len(tokens) == 3 and tokens[1] in ("+", "-", "*", "/"):
         return {"type": "math", "left": tokens[0], "op": tokens[1], "right": tokens[2]}
     if tokens[0] == "say" and tokens[1] == "(" and tokens[-1] == ")":
-        expr, end = parse_expression(tokens[2:-1])
-        if end == len(tokens[2:-1]):
-            return {"type": "say", "value": expr}
-    print(f"Error: Invalid statement {tokens} in OXTAN")
+        inner_tokens = tokens[2:-1]
+        if inner_tokens:
+            if len(inner_tokens) == 1 and not (inner_tokens[0].isdigit() or inner_tokens[0] in '+-*/'):
+                return {"type": "say", "value": inner_tokens[0]}
+            expr, end = parse_expression(inner_tokens)
+            if end == len(inner_tokens):
+                return {"type": "say", "value": expr}
+            else:
+                print(f"Error: Invalid expression inside say: {' '.join(inner_tokens)}")
+                return None
+        else:
+            return {"type": "say", "value": ""}
+    print(f"Error: Invalid statement {' '.join(tokens)} in OXTAN")
     return None
 
 def resolve(value):
@@ -96,7 +105,7 @@ def resolve(value):
     if isinstance(value, str):
         if value.isdigit():
             return int(value)
-        return variables.get(value, value)
+        return variables.get(value, value)  # Return string literal or variable value
     return value
 
 def execute(ast):
@@ -152,9 +161,9 @@ def oxtan_run():
                 if ast:
                     execute(ast)
                 else:
-                    print("Wrong typo?, Type cmd")
+                    print("Error: Invalid syntax. Type 'cmd' for help.")
             else:
-                print("Wrong typo?, Type cmd")
+                print("Error: Invalid input. Type 'cmd' for help.")
         except KeyboardInterrupt:
             print("\nExiting OXTAN...")
             break
