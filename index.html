@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OXTAN - Coming Soon</title>
+    <link rel="icon" href="public/oxtan.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #3b82f6;
+            --dark-blue: #1e40af;
+            --light-bg: #f9fafb;
+            --white: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --gradient-start: #e0f2fe;
+            --gradient-end: #ffffff;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: linear-gradient(180deg, var(--gradient-start), var(--gradient-end));
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .navbar {
+            position: fixed;
+            top: 25px;
+            width: 90%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: top 0.3s ease-in-out;
+        }
+        .nav-logo {
+            width: 60px;
+            height: 60px;
+            transition: transform 0.3s ease;
+        }
+        .nav-logo:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 1.8rem;
+        }
+        .nav-link {
+            color: var(--dark-blue);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 600;
+            position: relative;
+            padding: 5px 0;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-blue);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .nav-link.active {
+            color: var(--primary-blue);
+            font-weight: 800;
+        }
+        .nav-link.active::after {
+            width: 100%;
+        }
+        .nav-button {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 10px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-button:hover {
+            background: var(--dark-blue);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(30, 64, 175, 0.4);
+        }
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            padding: 2rem;
+            margin-top: 80px;
+        }
+        .hero-section h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            color: var(--dark-blue);
+            margin-bottom: 0.5rem;
+            letter-spacing: -1.5px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s ease-out 0.3s forwards;
+        }
+        .hero-section .tagline {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s ease-out 0.6s forwards;
+        }
+        .hero-button {
+            background: var(--primary-blue);
+            color: var(--white);
+            padding: 14px 35px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s ease-out 0.9s forwards, pulse 2.5s infinite 1.5s;
+        }
+        .hero-button:hover {
+            background: var(--dark-blue);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(30, 64, 175, 0.45);
+        }
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float 20s infinite ease-in-out;
+        }
+        .particle:nth-child(2n) {
+            background: rgba(30, 64, 175, 0.2);
+            animation-duration: 25s;
+        }
+        .particle:nth-child(3n) {
+            animation-duration: 15s;
+        }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.05) translateY(0); }
+        }
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0.5);
+                opacity: 0;
+            }
+            10%, 90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-10vh) scale(1);
+                opacity: 0;
+            }
+        }
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 10px 20px;
+                width: 95%;
+            }
+            .nav-menu { gap: 1rem; }
+            .nav-link { font-size: 0.9rem; }
+            .nav-button { padding: 8px 18px; font-size: 0.85rem; }
+            .hero-section h1 { font-size: 3rem; }
+            .hero-section .tagline { font-size: 1.1rem; }
+            .hero-button { padding: 12px 30px; font-size: 1rem; }
+            .nav-menu li:nth-child(2) { display: none; }
+        }
+        @media (max-width: 480px) {
+            .navbar { top: 15px; }
+            .nav-logo { width: 35px; height: 35px; }
+            .nav-menu { display: none; }
+            .navbar { justify-content: space-between; }
+            .navbar::after {
+                content: 'Contribute';
+                background: var(--primary-blue);
+                color: var(--white);
+                padding: 8px 18px;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 600;
+                text-decoration: none;
+            }
+            .hero-section h1 { font-size: 2.5rem; }
+            .hero-section .tagline { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar">
+    <svg class="nav-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;" />
+                <stop offset="100%" style="stop-color:#1e40af;" />
+            </linearGradient>
+        </defs>
+        <path fill="url(#logo-gradient)" d="M 20 80 Q 50 20 80 80 Q 65 60 50 60 Q 35 60 20 80 Z M 30 75 Q 50 30 70 75 Q 60 65 50 65 Q 40 65 30 75 Z" />
+        <circle cx="50" cy="50" r="10" fill="url(#logo-gradient)" opacity="0.8" />
+    </svg>
+    <ul class="nav-menu">
+        <li><a href="#" class="nav-link active">Home</a></li>
+        <li><a href="about.html" class="nav-link">About</a></li>
+        <li>
+            <a href="https://github.com/elitsuv/oxtan" class="nav-button" target="_blank" rel="noopener noreferrer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:6px;" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="currentColor" d="M12 2C6.477 2 2 6.484 2 12.021c0 4.428 2.865 8.184 6.839 9.504.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.004.07 1.532 1.032 1.532 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.339-2.221-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.025A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.295 2.748-1.025 2.748-1.025.544 1.378.201 2.397.099 2.65.64.7 1.028 1.595 1.028 2.688 0 3.847-2.337 4.695-4.566 4.944.36.31.68.921.68 1.857 0 1.34-.012 2.421-.012 2.751 0 .267.18.579.688.481C19.138 20.2 22 16.447 22 12.021 22 6.484 17.523 2 12 2z"/>
+                </svg>
+                GitHub
+            </a>
+        </li>
+    </ul>
+</nav>
+<section class="hero-section">
+    <div class="particles" id="particles-js"></div>
+    <h1>OXTAN</h1>
+    <p class="tagline">A fun python based programming language for kids, to fuel their passion in coding.</p>
+    <a href="https://github.com/elitsuv/oxtan" class="hero-button" target="_blank" rel="noopener noreferrer">Join the Mission</a>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script>
+    particlesJS("particles-js", {
+      "particles": {
+        "number": {
+          "value": 80,
+          "density": { "enable": true, "value_area": 800 }
+        },
+        "color": { "value": "#60a5fa" },
+        "shape": {
+          "type": "circle",
+          "stroke": { "width": 0, "color": "#000" }
+        },
+        "opacity": {
+          "value": 0.5,
+          "random": true,
+          "anim": { "enable": false }
+        },
+        "size": {
+          "value": 3,
+          "random": true,
+          "anim": { "enable": false }
+        },
+        "line_linked": {
+          "enable": true,
+          "distance": 150,
+          "color": "#3b82f6",
+          "opacity": 0.4,
+          "width": 1
+        },
+        "move": {
+          "enable": true,
+          "speed": 2,
+          "direction": "none",
+          "random": false,
+          "straight": false,
+          "out_mode": "out"
+        }
+      },
+      "interactivity": {
+        "detect_on": "canvas",
+        "events": {
+          "onhover": { "enable": true, "mode": "repulse" },
+          "onclick": { "enable": true, "mode": "push" },
+          "resize": true
+        },
+        "modes": {
+          "repulse": { "distance": 100 },
+          "push": { "particles_nb": 4 }
+        }
+      },
+      "retina_detect": true
+    });
+  </script>
+</body>
+</html>

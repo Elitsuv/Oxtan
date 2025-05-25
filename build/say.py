@@ -29,8 +29,8 @@ def tokenize(code):
             if i >= len(code):
                 print("Error: Missing closing quote in OXTAN")
                 return []
-            tokens.append(code[start:i])  # Include the string as is, with spaces
-            i += 1  # Skip the closing quote
+            tokens.append(code[start:i])
+            i += 1
             continue
         if var in '()=' or var in '+-*/':
             tokens.append(var)
@@ -43,11 +43,9 @@ def tokenize(code):
 def parse_expression(tokens, start=0):
     if start >= len(tokens):
         return None, start
-    
     if tokens[start].isdigit() or tokens[start].isalpha():
         left = tokens[start]
         start += 1
-        
         if start < len(tokens) and tokens[start] in '+-*/':
             op = tokens[start]
             start += 1
@@ -56,7 +54,6 @@ def parse_expression(tokens, start=0):
                 start += 1
                 return {"type": "math", "left": left, "op": op, "right": right}, start
         return left, start
-    
     return None, start
 
 def parse(tokens):
@@ -69,43 +66,63 @@ def parse(tokens):
     if len(tokens) == 3 and tokens[1] in ("+", "-", "*", "/"):
         return {"type": "math", "left": tokens[0], "op": tokens[1], "right": tokens[2]}
     if tokens[0] == "say" and tokens[1] == "(" and tokens[-1] == ")":
-        inner_tokens = tokens[2:-1]
-        if inner_tokens:
-            if len(inner_tokens) == 1 and not (inner_tokens[0].isdigit() or inner_tokens[0] in '+-*/'):
-                return {"type": "say", "value": inner_tokens[0]}
-            expr, end = parse_expression(inner_tokens)
-            if end == len(inner_tokens):
-                return {"type": "say", "value": expr}
+        # Support comma-separated values in say
+        inner_tokens = []
+        current = []
+        for t in tokens[2:-1]:
+            if t == ",":
+                if current:
+                    inner_tokens.append(current)
+                    current = []
             else:
-                print(f"Error: Invalid expression inside say: {' '.join(inner_tokens)}")
-                return None
-        else:
-            return {"type": "say", "value": ""}
+                current.append(t)
+        if current:
+            inner_tokens.append(current)
+        say_values = []
+        for group in inner_tokens:
+            if not group:
+                continue
+            if len(group) == 1 and not (group[0].isdigit() or group[0] in '+-*/'):
+                say_values.append(group[0])
+            else:
+                expr, end = parse_expression(group)
+                if end == len(group):
+                    say_values.append(expr)
+                else:
+                    print(f"Error: Invalid expression inside say: {' '.join(group)}")
+                    return None
+        return {"type": "say", "value": say_values}
     print(f"Error: Invalid statement {' '.join(tokens)} in OXTAN")
     return None
 
 def resolve(value):
-    if isinstance(value, dict) and value["type"] == "math":
+    if isinstance(value, dict) and value.get("type") == "math":
         left = resolve(value["left"])
         right = resolve(value["right"])
         if left is None or right is None:
-            print(f"Error: Unknown variable in math operation")
+            print("Error: Unknown variable in math operation")
             return None
-        if value["op"] == "+":
-            return left + right
-        elif value["op"] == "-":
-            return left - right
-        elif value["op"] == "*":
-            return left * right
-        elif value["op"] == "/":
-            if right == 0:
-                print("Error: Division by zero")
-                return None
-            return left / right
+        try:
+            if value["op"] == "+":
+                return left + right
+            elif value["op"] == "-":
+                return left - right
+            elif value["op"] == "*":
+                return left * right
+            elif value["op"] == "/":
+                if right == 0:
+                    print("Error: Division by zero")
+                    return None
+                return left / right
+        except Exception as e:
+            print(f"Error in math operation: {e}")
+            return None
     if isinstance(value, str):
         if value.isdigit():
             return int(value)
-        return variables.get(value, value)  # Return string literal or variable value
+        if value in variables:
+            return variables[value]
+        return value
     return value
 
 def execute(ast):
@@ -117,21 +134,27 @@ def execute(ast):
             print(f"Error: Cannot assign unknown value '{ast['value']}'")
             return
         variables[ast["var"]] = val
-        print(f"Assigned {ast['var']} = {val}")
+        print(f"{ast['var']} = {val}")
     elif ast["type"] == "compare":
         left = resolve(ast["left"])
         right = resolve(ast["right"])
-        print(left == right)
+        print("True" if left == right else "False")
     elif ast["type"] == "math":
         result = resolve(ast)
         if result is not None:
             print(result)
     elif ast["type"] == "say":
-        val = resolve(ast["value"])
-        if val is None:
-            print(f"Error: Cannot say unknown value")
-            return
-        print(val)
+        vals = ast["value"]
+        if not isinstance(vals, list):
+            vals = [vals]
+        out = []
+        for v in vals:
+            val = resolve(v)
+            if val is None:
+                print("Error: Cannot say unknown value")
+                return
+            out.append(str(val))
+        print(" ".join(out))
 
 def oxtan_run():
     print("OXTAN Language (type 'exit' to quit, 'cmd' to show all commands)")
@@ -153,7 +176,7 @@ def oxtan_run():
             if code.lower() == "cmd":
                 print("Available commands:")
                 for command in commands:
-                    print(f"{command}")
+                    print(command)
                 continue
             tokens = tokenize(code)
             if tokens:
