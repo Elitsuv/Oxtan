@@ -1,17 +1,8 @@
-# OXTAN — Minimal CLI Programming Language
+# OXTAN — Remove boilerplates of SQL
 
 > [!NOTE] 
 > This project is under development and contains bugs.
 
-OXTAN is a tiny command-line programming language built in Python to introduce kids to coding fundamentals — printing, variables, and basic math — without overwhelming complexity.
-Designed for beginners to bridge the gap before diving into Python.
-
----
-
-## Features (so far)
-- Simple print statements
-- Variables assignment
-- Basic math operations
----
+OXTAN is a tiny tool that lets user to code sql-connectivity without repeatative lines.
 
 Help us to bridge it!
