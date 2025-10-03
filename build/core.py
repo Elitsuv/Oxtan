@@ -1,14 +1,22 @@
 import mysql.connector
 import getpass
+from typing import Optional, Any, Tuple, List, Union
 
 class OxtanDB:
-    def __init__(self, host=None, user=None, password=None, database=None):
+    """
+    Handles MySQL database connection and queries for Oxtan.
+    """
+
+    def __init__(self, host: Optional[str]=None, user: Optional[str]=None, password: Optional[str]=None, database: Optional[str]=None):
         self.host = host or self._require_input("Enter MySQL host (default: localhost): ", default="localhost")
         self.user = user or self._require_input("Enter MySQL username (default: root): ", default="root")
         self.password = password or self._require_input("Enter MySQL password: ", is_password=True)
         self.database = database or self._require_input("Enter database name: ")
-        self.conn = None
-        self.cursor = None
+        self.conn: Optional[mysql.connector.connection.MySQLConnection] = None
+        self.cursor: Optional[mysql.connector.cursor.MySQLCursor] = None
+        self._connect()
+
+    def _connect(self) -> None:
         try:
             self.conn = mysql.connector.connect(
                 host=self.host,
@@ -20,9 +28,10 @@ class OxtanDB:
             print(f"✅ Connected to database '{self.database}' as {self.user}@{self.host}")
         except mysql.connector.Error as e:
             print(f"❌ Connection failed: {e}")
-            self.conn, self.cursor = None, None
-    
-    def _require_input(self, prompt, default=None, attempts=3, is_password=False):
+            self.conn = None
+            self.cursor = None
+
+    def _require_input(self, prompt: str, default: Optional[str]=None, attempts: int=3, is_password: bool=False) -> str:
         for attempt in range(1, attempts + 1):
             try:
                 if is_password:
@@ -38,8 +47,8 @@ class OxtanDB:
             if remaining:
                 print(f"Input required. {remaining} attempt(s) left.")
         raise ValueError("Required input not provided after max attempts.")
-    
-    def run(self, query, values=None, fetch="all"):
+
+    def run(self, query: str, values: Optional[Union[Tuple[Any, ...], List[Any]]]=None, fetch: str="all") -> Any:
         if not self.cursor:
             return "❌ No active DB connection."
         try:
@@ -56,16 +65,16 @@ class OxtanDB:
                 self.conn.commit()
                 return f"✅ {qtype} executed."
         except mysql.connector.Error as e:
-            self.conn.rollback()
-            return f"❌ Error executing '{qtype}': {e}"
-    
-    def close(self):
+            if self.conn: self.conn.rollback()
+            return f"❌ Error executing '{query}': {e}"
+
+    def close(self) -> None:
         if self.cursor: self.cursor.close()
         if self.conn: self.conn.close()
         print("✅ Connection closed.")
-    
+
     def __enter__(self): 
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb): 
         self.close()
