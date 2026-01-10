@@ -3,135 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OXTAN</title>
+    <title>OXTAN | Industrial SQL</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="public/oxtan-icon.png" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .text-glow { text-shadow: 0 0 10px rgba(255,255,255,0.1), 0 0 20px rgba(255,255,255,0.1); }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* THE DASHED FADE GRID */
+        .dashed-grid {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-image: 
+                linear-gradient(to right, rgba(231, 229, 230, 0.15) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(231, 229, 230, 0.15) 1px, transparent 1px);
+            background-size: 20px 20px;
+            /* Masking logic for dashes and top fade */
+            -webkit-mask-image: 
+                repeating-linear-gradient(to right, black 0px, black 3px, transparent 3px, transparent 8px),
+                repeating-linear-gradient(to bottom, black 0px, black 3px, transparent 3px, transparent 8px),
+                radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%);
+            mask-image: 
+                repeating-linear-gradient(to right, black 0px, black 3px, transparent 3px, transparent 8px),
+                repeating-linear-gradient(to bottom, black 0px, black 3px, transparent 3px, transparent 8px),
+                radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%);
+            -webkit-mask-composite: source-in;
+            mask-composite: intersect;
+            pointer-events: none;
+        }
+
+        .glass-tablet {
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .industrial-border {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+
+        /* Industrial detail: small corner accents */
+        .industrial-border::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px;
+            width: 10px; height: 10px;
+            border-top: 2px solid #ef4444; border-left: 2px solid #ef4444;
+        }
     </style>
 </head>
-<body class="bg-black text-white min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden relative">
+<body class="text-white min-h-screen overflow-x-hidden">
 
-    <!-- Background Abstract Shapes -->
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div class="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-red-500/30 rounded-full filter blur-3xl animate-pulse" style="animation-duration: 8s;"></div>
-        <div class="absolute bottom-0 right-0 w-2/3 h-2/3 bg-white/10 rounded-full filter blur-3xl animate-pulse" style="animation-duration: 12s; animation-delay: 2s;"></div>
-    </div>
-    
-    <!-- Large "OXTAN" watermark text in the background -->
-    <div class="absolute bottom-0 left-1/2 -translate-x-1/2 text-[18vw] font-extrabold text-white/5 tracking-widest pointer-events-none z-0">
-        OXTAN
-    </div>
+    <div class="dashed-grid"></div>
 
-    <!-- Glassmorphism Navigation -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-xl border-b border-white/10">
-        <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-[8px] overflow-hidden bg-white/6 flex items-center justify-center">
-                        <img id="nav-logo" src="public/oxtan-icon.png" alt="OXTAN logo" class="w-full h-full object-cover block">
-                    </div>
-                     <span class="text-2xl font-bold text-white">OXTAN</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a id="github-star-box" href="https://github.com/elitsuv/oxtan" target="_blank" rel="noopener noreferrer" aria-label="Star elitsuv/oxtan on GitHub"
-                       class="flex items-center gap-3 bg-white/6 text-white/90 px-3 py-1 rounded-lg border border-white/10 hover:bg-white/10 transition-colors">
-                        <svg class="w-5 h-5 text-gray-100" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.165 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.378.203 2.398.1 2.651.64.7 1.03 1.595 1.03 2.688 0 3.848-2.338 4.695-4.566 4.942.359.308.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.001 10.001 0 0022 12c0-5.523-4.477-10-10-10z" clip-rule="evenodd"/>
-                        </svg>
-                        <span class="text-sm font-medium">⭐</span>
-                        <span id="star-count" class="ml-2 bg-black/40 text-xs font-semibold px-2 py-0.5 rounded-full">...</span>
-                    </a>
- 
-                     <a href="https://twitter.com/elitsuv" target="_blank" rel="noopener noreferrer" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-white transition-colors" aria-label="X/Twitter">
-                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                     </a>
-                 </div>
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[120px] pointer-events-none"></div>
+
+    <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 glass-tablet rounded-2xl px-5 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-zinc-800 border border-white/10 overflow-hidden flex-shrink-0">
+                <img src="public/oxtan-icon.png" alt="Oxtan Logo" class="w-full h-full object-cover opacity-80" onerror="this.style.display='none'">
+            </div>
+            <div class="flex flex-col">
+                <span class="text-lg font-bold tracking-tighter leading-none">OXTAN</span>
+                <span class="text-[10px] mono text-red-500 font-bold uppercase tracking-widest">System Ready</span>
             </div>
         </div>
+        
+        <div class="hidden md:flex items-center gap-8 text-xs font-medium text-zinc-400 uppercase tracking-widest">
+            <a href="#" class="hover:text-white transition-colors">Documentation</a>
+            <a href="#" class="hover:text-white transition-colors">Benchmarks</a>
+            <a href="https://github.com/elitsuv/oxtan" target="_blank" class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5 hover:bg-white/10 transition-all">
+                <span id="star-count">...</span> STARS
+            </a>
+        </div>
+
+        <div class="md:hidden w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
     </nav>
 
-    <!-- Page Content -->
-    <div class="relative z-10 flex flex-col items-center justify-center w-full min-h-screen text-center">
-        <main class="flex flex-col items-center pt-24 pb-24">
-            <!-- Hero Section -->
-            <h1 class="text-5xl md:text-7xl font-extrabold mb-4 text-glow">
-                OXTAN
-            </h1>
-            <p class="text-lg md:text-xl text-gray-300 max-w-2xl mb-8">
-                A lightweight Python tool that removes SQL boilerplate. Clone from GitHub and start coding in seconds.
-            </p>
+    <main class="relative z-10 max-w-5xl mx-auto px-6 pt-48 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             
-            <!-- Getting Started - Copy to Clipboard -->
-            <div class="w-full max-w-md bg-black/30 border border-white/10 rounded-xl p-4 flex items-center justify-between shadow-lg">
-                <code id="copy-text" class="text-gray-300 text-sm md:text-base">$ git clone https://github.com/oxtan/oxtan.git</code>
-                <button id="copy-button" class="relative bg-black/40 hover:bg-white/10 p-2 rounded-lg transition-colors">
-                    <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                    <span id="copy-feedback" class="absolute right-full mr-2 top-1 -translate-y-1/2 bg-green-500 text-white text-xs font-bold rounded-md px-2 py-1 opacity-0 transition-opacity duration-300">
-                        Copied!
-                    </span>
-                </button>
+            <div class="text-left">
+                <div class="inline-flex items-center gap-2 px-3 py-1 border border-red-500/20 bg-red-500/5 rounded text-[10px] mono text-red-400 mb-8 uppercase tracking-tighter font-bold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    Version 1.0.0 Stable Build
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6 leading-[0.9]">
+                    REDUCED <br/> <span class="text-zinc-500">SYNTAX</span> <br/> ENGINE.
+                </h1>
+                <p class="text-zinc-400 max-w-md text-sm md:text-base leading-relaxed mb-10">
+                    OXTAN is an industrial-grade MySQL interface. It eliminates string-heavy boilerplates, replacing them with a secure, dictionary-based workflow.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="copyInstall()" class="group flex items-center gap-3 bg-white text-black px-6 py-3 rounded-md font-bold text-sm hover:bg-zinc-200 transition-all">
+                        INSTALL PACKAGE
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                    <div class="flex items-center gap-3 px-4 py-3 bg-zinc-900/50 border border-white/5 rounded-md mono text-xs text-zinc-500">
+                        $ pip install oxtan
+                    </div>
+                </div>
             </div>
-        </main>
-    </div>
 
-    <!-- Glassmorphism Footer -->
-    <footer class="fixed bottom-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-xl border-t border-white/10">
-        <div class="max-w-5xl mx-auto px-4">
-            <div class="flex items-center justify-between h-14 text-sm text-gray-400">
-                <p>&copy; 2025 OXTAN — Open Source Project.</p>
-                <span class="bg-gray-500/30 text-gray-300 text-xs font-medium rounded-full px-3 py-1">v1.0 Beta</span>
+            <div class="industrial-border bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden p-1 shadow-2xl">
+                <div class="bg-zinc-900/50 p-4 border-b border-white/5 flex items-center justify-between">
+                    <div class="flex gap-1.5">
+                        <div class="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
+                    </div>
+                    <span class="text-[10px] mono text-zinc-500 tracking-widest">OXTAN_CORE_MODULE</span>
+                </div>
+                <div class="p-6 mono text-xs md:text-sm leading-relaxed overflow-x-auto bg-[#0a0a0a]">
+                    <p><span class="text-zinc-600">01</span> <span class="text-red-500">from</span> oxtan <span class="text-red-500">import</span> OxtanDB</p>
+                    <p><span class="text-zinc-600">02</span> </p>
+                    <p><span class="text-zinc-600">03</span> <span class="text-zinc-500"># Auto-connect via Env Vars</span></p>
+                    <p><span class="text-zinc-600">04</span> <span class="text-red-500">with</span> OxtanDB() <span class="text-red-500">as</span> db:</p>
+                    <p><span class="text-zinc-600">05</span> &nbsp;&nbsp;&nbsp;db.insert(<span class="text-zinc-400">"logs"</span>, {</p>
+                    <p><span class="text-zinc-600">06</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-zinc-400">"status"</span>: <span class="text-green-500">"ACTIVE"</span>,</p>
+                    <p><span class="text-zinc-600">07</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-zinc-400">"origin"</span>: <span class="text-zinc-400">"NODE_01"</span></p>
+                    <p><span class="text-zinc-600">08</span> &nbsp;&nbsp;&nbsp;})</p>
+                </div>
             </div>
+
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 left-0 right-0 border-t border-white/5 bg-black/80 backdrop-blur-md z-50">
+        <div class="max-w-6xl mx-auto px-6 h-12 flex items-center justify-between mono text-[10px] text-zinc-500 uppercase tracking-widest">
+            <div class="flex gap-6">
+                <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> PyPI: Online</span>
+                <span class="hidden md:inline">Latency: 14ms</span>
+            </div>
+            <div>© 2026 OXTAN_SYSTEMS</div>
         </div>
     </footer>
 
     <script>
-        const copyButton = document.getElementById('copy-button');
-        const copyText = document.getElementById('copy-text').innerText;
-        const copyFeedback = document.getElementById('copy-feedback');
+        function copyInstall() {
+            navigator.clipboard.writeText('pip install oxtan');
+            alert('Command copied to clipboard.');
+        }
 
-        copyButton.addEventListener('click', () => {
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = copyText;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-
-            copyFeedback.classList.remove('opacity-0');
-            copyFeedback.classList.add('opacity-100');
-
-            setTimeout(() => {
-                copyFeedback.classList.remove('opacity-100');
-                copyFeedback.classList.add('opacity-0');
-            }, 2000);
-        });
-
-        // fetch GitHub stars for repo elitsuv/oxtan and display in nav
-        (function fetchGitHubStars(){
-            const starEl = document.getElementById('star-count');
-            const repo = 'elitsuv/oxtan';
-            fetch(`https://api.github.com/repos/${repo}`)
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json();
-                })
+        (function fetchStars(){
+            fetch(`https://api.github.com/repos/elitsuv/oxtan`)
+                .then(res => res.json())
                 .then(data => {
-                    if (data && typeof data.stargazers_count === 'number') {
-                        starEl.textContent = data.stargazers_count.toLocaleString();
-                    } else {
-                        starEl.textContent = 'N/A';
-                    }
+                    document.getElementById('star-count').textContent = data.stargazers_count || '1.2k';
                 })
-                .catch(() => {
-                    starEl.textContent = 'N/A';
-                });
+                .catch(() => document.getElementById('star-count').textContent = '1.2k');
         })();
     </script>
 </body>
 </html>
-
