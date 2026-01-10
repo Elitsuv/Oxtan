@@ -18,10 +18,3 @@ OxtanDB is a lightweight utility designed to eliminate the repetitive boilerplat
 * **🤖 CI/CD Ready**: Designed for automation with no interactive prompts; fully configurable via environment variables.
 
 ---
-
-## 📦 Installation
-
-Install Oxtan directly via pip:
-
-```bash
-pip install oxtan
