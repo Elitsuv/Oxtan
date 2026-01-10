@@ -11,22 +11,20 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #050505; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        
-        /* THE DASHED FADE GRID */
+       
         .dashed-grid {
             position: absolute;
             inset: 0;
             z-index: 0;
-            background-image: 
+            background-image:
                 linear-gradient(to right, rgba(231, 229, 230, 0.15) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(231, 229, 230, 0.15) 1px, transparent 1px);
             background-size: 20px 20px;
-            /* Masking logic for dashes and top fade */
-            -webkit-mask-image: 
+            -webkit-mask-image:
                 repeating-linear-gradient(to right, black 0px, black 3px, transparent 3px, transparent 8px),
                 repeating-linear-gradient(to bottom, black 0px, black 3px, transparent 3px, transparent 8px),
                 radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%);
-            mask-image: 
+            mask-image:
                 repeating-linear-gradient(to right, black 0px, black 3px, transparent 3px, transparent 8px),
                 repeating-linear-gradient(to bottom, black 0px, black 3px, transparent 3px, transparent 8px),
                 radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%);
@@ -34,20 +32,16 @@
             mask-composite: intersect;
             pointer-events: none;
         }
-
         .glass-tablet {
             background: rgba(15, 15, 15, 0.7);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
-
         .industrial-border {
             border: 1px solid rgba(255, 255, 255, 0.08);
             position: relative;
         }
-
-        /* Industrial detail: small corner accents */
         .industrial-border::before {
             content: '';
             position: absolute;
@@ -57,10 +51,8 @@
         }
     </style>
 </head>
-<body class="text-white min-h-screen overflow-x-hidden">
-
+<body class="text-white min-h-screen overflow-x-hidden relative">
     <div class="dashed-grid"></div>
-
     <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[120px] pointer-events-none"></div>
 
     <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 glass-tablet rounded-2xl px-5 py-3 flex items-center justify-between">
@@ -73,21 +65,18 @@
                 <span class="text-[10px] mono text-red-500 font-bold uppercase tracking-widest">System Ready</span>
             </div>
         </div>
-        
+       
         <div class="hidden md:flex items-center gap-8 text-xs font-medium text-zinc-400 uppercase tracking-widest">
-            <a href="#" class="hover:text-white transition-colors">Documentation</a>
-            <a href="#" class="hover:text-white transition-colors">Benchmarks</a>
             <a href="https://github.com/elitsuv/oxtan" target="_blank" class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5 hover:bg-white/10 transition-all">
                 <span id="star-count">...</span> STARS
             </a>
         </div>
-
         <div class="md:hidden w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
     </nav>
 
-    <main class="relative z-10 max-w-5xl mx-auto px-6 pt-48 pb-20">
+    <main class="relative z-10 max-w-5xl mx-auto px-6 pt-48 pb-32">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            
+           
             <div class="text-left">
                 <div class="inline-flex items-center gap-2 px-3 py-1 border border-red-500/20 bg-red-500/5 rounded text-[10px] mono text-red-400 mb-8 uppercase tracking-tighter font-bold">
                     <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
@@ -97,17 +86,9 @@
                     REDUCED <br/> <span class="text-zinc-500">SYNTAX</span> <br/> ENGINE.
                 </h1>
                 <p class="text-zinc-400 max-w-md text-sm md:text-base leading-relaxed mb-10">
-                    OXTAN is an industrial-grade MySQL interface. It eliminates string-heavy boilerplates, replacing them with a secure, dictionary-based workflow.
+                    OXTAN is an industrial-grade MySQL interface.<br/>
+                    Secure. Dictionary-driven. Zero boilerplate.
                 </p>
-                <div class="flex flex-wrap gap-4">
-                    <button onclick="copyInstall()" class="group flex items-center gap-3 bg-white text-black px-6 py-3 rounded-md font-bold text-sm hover:bg-zinc-200 transition-all">
-                        INSTALL PACKAGE
-                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    </button>
-                    <div class="flex items-center gap-3 px-4 py-3 bg-zinc-900/50 border border-white/5 rounded-md mono text-xs text-zinc-500">
-                        $ pip install oxtan
-                    </div>
-                </div>
             </div>
 
             <div class="industrial-border bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden p-1 shadow-2xl">
@@ -130,26 +111,79 @@
                     <p><span class="text-zinc-600">08</span> &nbsp;&nbsp;&nbsp;})</p>
                 </div>
             </div>
+        </div>
 
+        <!-- Coming Soon Timeline -->
+        <div class="mt-32 max-w-3xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter text-center mb-16">
+                COMING <span class="text-zinc-500">SOON</span>
+            </h2>
+
+            <div class="relative">
+                <!-- Vertical line -->
+                <div class="absolute left-4 md:left-1/2 h-full w-[2px] bg-gradient-to-b from-red-500/30 via-red-600/20 to-transparent transform md:-translate-x-1/2"></div>
+
+                <div class="space-y-16 md:space-y-24 relative z-10">
+                    <!-- Item 1 -->
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-12">
+                        <div class="md:w-5/12 md:text-right order-2 md:order-1">
+                            <div class="text-xs mono text-zinc-500 uppercase tracking-widest mb-2">Q1 2026</div>
+                            <h3 class="text-2xl font-bold">Beta Release v1.0</h3>
+                            <p class="text-zinc-400 mt-2 text-sm">Stable core + documentation</p>
+                        </div>
+                        <div class="md:w-5/12 order-1 md:order-2">
+                            <div class="glass-tablet rounded-xl p-6 border-l-4 border-red-600 relative">
+                                <div class="absolute -left-3 top-1/2 w-6 h-6 rounded-full bg-red-600/20 border-2 border-red-500 flex items-center justify-center transform -translate-y-1/2">
+                                    <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                                </div>
+                                <p class="text-sm text-zinc-300">Official launch on PyPI soon!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-12">
+                        <div class="md:w-5/12 md:text-right order-2">
+                            <div class="text-xs mono text-zinc-500 uppercase tracking-widest mb-2">Q2 2026</div>
+                            <h3 class="text-2xl font-bold">MySQL Support</h3>
+                            <p class="text-zinc-400 mt-2 text-sm">Same reduced syntax → MySQL</p>
+                        </div>
+                        <div class="md:w-5/12 order-1">
+                            <div class="glass-tablet rounded-xl p-6 border-l-4 border-red-600/70 relative">
+                                <p class="text-sm text-zinc-300">One codebase → Multiple backends</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 3 -->
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-12">
+                        <div class="md:w-5/12 md:text-right order-2">
+                            <div class="text-xs mono text-zinc-500 uppercase tracking-widest mb-2">Q3–Q4 2026</div>
+                            <h3 class="text-2xl font-bold">Fast!</h3>
+                            <p class="text-zinc-400 mt-2 text-sm">Connection pooling • Query caching • Observability</p>
+                        </div>
+                        <div class="md:w-5/12 order-1">
+                            <div class="glass-tablet rounded-xl p-6 border-l-4 border-red-600/40 relative">
+                                <p class="text-sm text-zinc-300">Built for production scale</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
     <footer class="fixed bottom-0 left-0 right-0 border-t border-white/5 bg-black/80 backdrop-blur-md z-50">
         <div class="max-w-6xl mx-auto px-6 h-12 flex items-center justify-between mono text-[10px] text-zinc-500 uppercase tracking-widest">
             <div class="flex gap-6">
-                <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> PyPI: Online</span>
-                <span class="hidden md:inline">Latency: 14ms</span>
+                <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> PyPI: Coming Soon</span>
+                <span class="hidden md:inline">Status: Pre-Release</span>
             </div>
-            <div>© 2026 OXTAN_SYSTEMS</div>
+            <div>© 2026 By Elitsuv</div>
         </div>
     </footer>
 
     <script>
-        function copyInstall() {
-            navigator.clipboard.writeText('pip install oxtan');
-            alert('Command copied to clipboard.');
-        }
-
         (function fetchStars(){
             fetch(`https://api.github.com/repos/elitsuv/oxtan`)
                 .then(res => res.json())
