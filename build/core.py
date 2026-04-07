@@ -6,7 +6,6 @@ from mysql.connector import pooling, Error
 from typing import Optional, Any, List, Dict, Union
 import pandas as pd
 
-# Setup basic logger
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger("oxtan")
 
@@ -14,19 +13,22 @@ class OxtanDB:
     def __init__(self, **kwargs):
         """
         MNC Standard: Initializes silently. No input() prompts.
-        Relies strictly on kwargs or Environment Variables.
+        Relies strictly on kwargs or Environment Variables for CI/CD pipelines.
         """
         self.config = {
-            "host": kwargs.get("host") or os.getenv("MYSQL_HOST", "localhost"),
-            "user": kwargs.get("user") or os.getenv("MYSQL_USER", "root"),
-            "password": kwargs.get("password") or os.getenv("MYSQL_PASSWORD"),
-            "database": kwargs.get("database") or os.getenv("MYSQL_DATABASE"),
-            "port": int(kwargs.get("port") or os.getenv("MYSQL_PORT", 3306)),
+            "host": kwargs.get("host") or os.getenv("DB_HOST", "localhost"),
+            "user": kwargs.get("user") or os.getenv("DB_USER", "root"),
+            "password": kwargs.get("password") or os.getenv("DB_PASS"),
+            "database": kwargs.get("database") or os.getenv("DB_NAME"),
+            "port": int(kwargs.get("port") or os.getenv("DB_PORT", 3306)),
         }
 
         # Fail fast if critical data is missing
         if not self.config["password"] or not self.config["database"]:
-            raise ValueError("❌ Missing password or database! Pass them as kwargs or use .env variables.")
+            raise ValueError(
+                "❌ CRITICAL: Missing password or database! "
+                "Pass them as kwargs or set DB_PASS and DB_NAME in your environment variables."
+            )
 
         self.pool = None
         self._initialize_pool(kwargs.get("pool_name", "oxtan_pool"), kwargs.get("pool_size", 5))
@@ -76,15 +78,20 @@ class OxtanDB:
             cursor.close()
             conn.close() # Returns connection to the pool
 
-    def select(self, table: str, columns: Union[str, List[str]] = "*", where: Dict[str, Any] = None, as_df: bool = True) -> Union[List[Dict], pd.DataFrame]:
+    def select(self, table: str, columns: Union[str, List[str]] = "*", where: Union[str, Dict[str, Any]] = None, as_df: bool = True) -> Union[List[Dict], pd.DataFrame]:
         """Fetches data. Returns a Pandas DataFrame by default for ML workflows."""
         cols = ", ".join(columns) if isinstance(columns, list) else columns
         sql = f"SELECT {cols} FROM {table}"
         params = []
         
         if where:
-            sql += " WHERE " + " AND ".join([f"{k} = %s" for k in where.keys()])
-            params = list(where.values())
+            if isinstance(where, dict):
+                sql += " WHERE " + " AND ".join([f"{k} = %s" for k in where.keys()])
+                params = list(where.values())
+            elif isinstance(where, str):
+                sql += f" WHERE {where}"
+            else:
+                raise TypeError("where clause must be a dictionary or a string.")
             
         results = self._execute(sql, tuple(params), fetch=True)
         
@@ -98,28 +105,49 @@ class OxtanDB:
         sql = f"INSERT INTO {table} ({keys}) VALUES ({placeholders})"
         return self._execute(sql, tuple(data.values()))
 
-    def update(self, table: str, data: Dict[str, Any], where: Dict[str, Any]) -> int:
+    def update(self, table: str, data: Dict[str, Any], where: Union[str, Dict[str, Any]]) -> int:
         if not where:
             raise ValueError("🔒 Oxtan Safety Lock: Blocked UPDATE without WHERE clause to prevent overwriting all rows.")
             
         set_clause = ", ".join([f"{k} = %s" for k in data.keys()])
-        where_clause = " AND ".join([f"{k} = %s" for k in where.keys()])
-        sql = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
-        params = list(data.values()) + list(where.values())
+        sql = f"UPDATE {table} SET {set_clause}"
+        params = list(data.values())
+        
+        if isinstance(where, dict):
+            sql += " WHERE " + " AND ".join([f"{k} = %s" for k in where.keys()])
+            params.extend(where.values())
+        elif isinstance(where, str):
+            sql += f" WHERE {where}"
+        else:
+            raise TypeError("where clause must be a dictionary or a string.")
+            
         return self._execute(sql, tuple(params))
 
-    def delete(self, table: str, where: Dict[str, Any]) -> int:
+    def delete(self, table: str, where: Union[str, Dict[str, Any]]) -> int:
         if not where:
             raise ValueError("🔒 Oxtan Safety Lock: Blocked DELETE without WHERE clause to prevent wiping the table.")
             
-        where_clause = " AND ".join([f"{k} = %s" for k in where.keys()])
-        sql = f"DELETE FROM {table} WHERE {where_clause}"
-        return self._execute(sql, tuple(where.values()))
+        sql = f"DELETE FROM {table}"
+        params = []
+        
+        if isinstance(where, dict):
+            sql += " WHERE " + " AND ".join([f"{k} = %s" for k in where.keys()])
+            params.extend(where.values())
+        elif isinstance(where, str):
+            sql += f" WHERE {where}"
+        else:
+             raise TypeError("where clause must be a dictionary or a string.")
+             
+        return self._execute(sql, tuple(params))
 
     def raw(self, sql: str, params: tuple = None, as_df: bool = False) -> Any:
-        is_select = sql.strip().upper().startswith("SELECT")
-        results = self._execute(sql, params, fetch=is_select)
-        if is_select and as_df:
+        sql_upper = sql.strip().upper()
+        # Expanded to catch SHOW, DESCRIBE, and EXPLAIN, which all return data!
+        returns_data = sql_upper.startswith(("SELECT", "SHOW", "DESCRIBE", "EXPLAIN"))
+        
+        results = self._execute(sql, params, fetch=returns_data)
+        
+        if returns_data and as_df:
              return pd.DataFrame(results) if results else pd.DataFrame()
         return results
 
@@ -131,5 +159,6 @@ class OxtanDB:
         pass
 
     def get_tables(self) -> List[str]:
-        res = self.raw("SHOW TABLES")
+        # Bypassing raw() here and explicitly forcing fetch=True to guarantee results are read
+        res = self._execute("SHOW TABLES", fetch=True)
         return [list(r.values())[0] for r in res] if res else []
