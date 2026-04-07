@@ -1,31 +1,37 @@
-from build.core import OxtanDB
+# Use this for local testing. 
+# Once published, users will do: from oxtan import OxtanDB
+from build.core import OxtanDB 
 
 def run_workspace_test():
     print("🚀 Initializing Oxtan Workspace...")
     
     try:
-        # If credentials aren't passed, Oxtan will prompt you in the terminal
-        with OxtanDB(database="exam") as db:
+        # We use from_cli() for the demo so it interactively prompts the user.
+        # In automated CI/CD or production, users will just use: with OxtanDB() as db:
+        with OxtanDB.from_cli() as db:
             
             print("\n🛠️  Setting up table...")
-            db.raw("CREATE TABLE IF NOT EXISTS oxtan_demo (id INT PRIMARY KEY, name VARCHAR(50), role VARCHAR(50))")
+            # Drop table first so the demo is idempotent (can be run multiple times without PK errors)
+            db.raw("DROP TABLE IF EXISTS oxtan_demo")
+            db.raw("CREATE TABLE oxtan_demo (id INT PRIMARY KEY, name VARCHAR(50), role VARCHAR(50))")
             
             print("📝 Inserting data...")
             db.insert("oxtan_demo", {"id": 101, "name": "Jack", "role": "Developer"})
             db.insert("oxtan_demo", {"id": 102, "name": "Sarah", "role": "Designer"})
 
-            print("🔍 Querying data...")
-            developers = db.select("oxtan_demo", where={"role": "Developer"})
+            print("🔍 Querying data (Returns a Pandas DataFrame!)...")
+            # Showcasing the new string-based WHERE clause we just fixed
+            developers_df = db.select("oxtan_demo", where="role = 'Developer'") 
             
             print("\n📊 Results found:")
-            for dev in developers:
-                print(f" -> User: {dev['name']} | ID: {dev['id']}")
+            print(developers_df) # Prints a beautifully formatted DataFrame table
 
             print("\n🔄 Updating record...")
+            # Showcasing that dictionary-based WHERE clauses still work perfectly
             db.update("oxtan_demo", data={"role": "Lead"}, where={"id": 101})
 
             tables = db.get_tables()
-            print(f"📂 Current Database Tables: {tables}")
+            print(f"\n📂 Current Database Tables: {tables}")
 
     except Exception as e:
         print(f"\n❌ Workspace Flow Interrupted: {e}")
