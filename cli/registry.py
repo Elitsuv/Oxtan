@@ -7,7 +7,7 @@ class CommandRegistry:
     def __init__(self):
         self.commands: Dict[str, Callable] = {}
         self.parser = argparse.ArgumentParser(
-            description="Oxtan v2 CLI - A Secure, High-Performance MySQL Wrapper"
+            description="Oxtan v3 CLI - A Secure, High-Performance MySQL Wrapper"
         )
         self.subparsers = self.parser.add_subparsers(dest="command", help="Available commands")
 

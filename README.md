@@ -1,13 +1,13 @@
 > [!NOTE] 
 > This project is under development and contains bugs.
 
-# 🛡️ OxtanDB v2
+# 🛡️ OxtanDB v3
 
 **A Secure, High-Performance, Reduced-Syntax MySQL Wrapper and CLI for Python.**
 
 OxtanDB is a utility designed to eliminate the repetitive boilerplate code associated with MySQL connections. It provides a fluent, developer-friendly API that handles connection pooling, prevents SQL injection, and returns data as clean Python dictionaries or Pandas DataFrames.
 
-Version 2 introduces a scalable CLI architecture to manage your databases directly from the terminal!
+Version 3 introduces a scalable CLI architecture to manage your databases directly from the terminal!
 
 ---
 
