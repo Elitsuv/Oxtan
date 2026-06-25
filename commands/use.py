@@ -1,9 +1,17 @@
 import argparse
 
 def setup(parser: argparse.ArgumentParser):
-    """Sets the active database profile."""
-    pass
+    """Sets the active db profiles"""
 
-def run(args: argparse.Namespace):
-    from formatters.terminal import print_info
-    print_info("use command executed. (Architecture stub)")
+    parser.add_argument("name", help="Active profiles to use: ")
+
+    def run(args: argparse.Namespace):
+        from config.profiles import ProfileManager
+        from formatters.terminal import print_success, print_error
+
+        pm = ProfileManager()
+        try:
+            pm.set_active_profile(args.name)
+            print_success(f"Profile '{args.name}' activated successfully!")
+        except ValueError as e:
+            print_error(str(e))

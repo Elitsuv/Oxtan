@@ -1,7 +1,7 @@
 import sys
 import logging
 from cli.registry import CommandRegistry
-from commands import add_db, use, dbs, tables, schema, peek, count
+from commands import add_db, use, dbs, tables, schema, peek, count, current
 
 # Setup basic logging for the CLI
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
@@ -18,6 +18,7 @@ def main():
     registry.register("schema", schema.setup, schema.run)
     registry.register("peek", peek.setup, peek.run)
     registry.register("count", count.setup, count.run)
+    registry.register("current", current.setup, current.run)
     
     # Execute the CLI
     registry.execute(sys.argv[1:])
