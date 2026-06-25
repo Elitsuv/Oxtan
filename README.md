@@ -1,7 +1,7 @@
 > [!NOTE] 
 > This project is under development and contains bugs.
 
-# 🛡️ OxtanDB v2
+# 🛡️ OxtanDB v3
 
 **A Secure, High-Performance, Reduced-Syntax MySQL Wrapper and CLI for Python.**
 
