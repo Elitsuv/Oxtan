@@ -44,6 +44,27 @@ class ProfileManager:
         with open(self.config_path, 'w') as f:
             json.dump(data, f, indent=4)
         
+    def get_active_profile(self) -> Optional[str]:
+        """
+        Returns the name of the active profile, or None.
+        """
+        data = self.load_profiles()
+        return data.get("active")
+
+    def set_active_profile(self, name: str):
+        """
+        Sets a specific profile as the active (default) connection profile.
+        """
+        data = self.load_profiles()
+        
+        # Check if the profile exists
+        if name not in data.get("profiles", {}):
+            raise ValueError(f"Profile '{name}' does not exist.")
+            
+        data["active"] = name
+        with open(self.config_path, 'w') as f:
+            json.dump(data, f, indent=4)
+
     def get_profile(self, name: str) -> Optional[Dict[str, Any]]:
         """
         Retrieves a specific profile configuration by name.
@@ -63,13 +84,6 @@ class ProfileManager:
                 return True
         return False
         
-    def set_active_profile(self, name: str):
-        """
-        Sets a specific profile as the active (default) connection profile.
-        """
-        data = self.load_profile()
-        return data.get("active")
-    
     def list_profiles(self) -> List[str]:
         """
         Returns a list of all saved profile names.
