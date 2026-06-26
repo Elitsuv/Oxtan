@@ -1,7 +1,5 @@
 import argparse
 
-import argparse
-
 def setup(parser: argparse.ArgumentParser):
     """Shows the current active profile."""
     pass

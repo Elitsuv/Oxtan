@@ -1,197 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OXTAN | Industrial SQL</title>
+    <title>Oxtan - Secure Database Wrapper & CLI</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'spin-slow': 'spin 6s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #050505; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-       
-        .dashed-grid {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            background-image:
-                linear-gradient(to right, rgba(231, 229, 230, 0.15) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(231, 229, 230, 0.15) 1px, transparent 1px);
-            background-size: 20px 20px;
-            -webkit-mask-image:
-                repeating-linear-gradient(to right, black 0px, black 3px, transparent 3px, transparent 8px),
-                repeating-linear-gradient(to bottom, black 0px, black 3px, transparent 3px, transparent 8px),
-                radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%);
-            mask-image:
-                repeating-linear-gradient(to right, black 0px, black 3px, transparent 3px, transparent 8px),
-                repeating-linear-gradient(to bottom, black 0px, black 3px, transparent 3px, transparent 8px),
-                radial-gradient(ellipse 70% 60% at 50% 0%, #000 60%, transparent 100%);
-            -webkit-mask-composite: source-in;
-            mask-composite: intersect;
-            pointer-events: none;
+        body {
+            background-color: #fafafa;
+            color: #000000;
+            -webkit-font-smoothing: antialiased;
+            /* Subtle dot grid for the glassmorphism to contrast against */
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 24px 24px;
         }
-        .glass-tablet {
-            background: rgba(15, 15, 15, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+
+        /* Glassmorphism base */
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
         }
-        .industrial-border {
-            border: 1px solid rgba(255, 255, 255, 0.08);
+
+        /* Animated Border Glass Box */
+        .animated-border-box {
             position: relative;
+            border-radius: 1rem;
+            overflow: hidden;
+            padding: 1px; /* The border width */
+            z-index: 1;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
-        .industrial-border::before {
+        .animated-border-box::before {
             content: '';
             position: absolute;
-            top: -1px; left: -1px;
-            width: 10px; height: 10px;
-            border-top: 2px solid #ef4444; border-left: 2px solid #ef4444;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, #000000, transparent);
+            animation: spin-slow 4s linear infinite;
+            z-index: -2;
+        }
+        .animated-border-box::after {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-radius: calc(1rem - 1px);
+            z-index: -1;
+        }
+
+        .code-block {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
         }
     </style>
 </head>
-<body class="text-white min-h-screen overflow-x-hidden relative">
-    <div class="dashed-grid"></div>
-    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-red-600/10 blur-[120px] pointer-events-none"></div>
+<body class="min-h-screen flex flex-col pt-24">
 
-    <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl z-50 glass-tablet rounded-2xl px-5 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-lg bg-zinc-800 border border-white/10 overflow-hidden flex-shrink-0">
-                <img src="public/oxtan-icon.png" alt="Oxtan Logo" class="w-full h-full object-cover opacity-80" onerror="this.style.display='none'">
-            </div>
-            <div class="flex flex-col">
-                <span class="text-lg font-bold tracking-tighter leading-none">OXTAN</span>
-                <span class="text-[10px] mono text-red-500 font-bold uppercase tracking-widest">System Ready</span>
-            </div>
+    <!-- Premium Rounded Navigation -->
+    <header class="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-5xl z-50 glass rounded-full px-4 py-3 flex items-center justify-between transition-all">
+        <div class="flex items-center gap-8 pl-2">
+            <a href="index.html" class="flex items-center gap-3 font-bold text-lg tracking-tight">
+                <img src="./assets/oxtan.png" alt="Oxtan Logo" class="w-7 h-7 object-contain">
+                Oxtan
+            </a>
+            <nav class="hidden md:flex gap-6 text-sm font-medium text-gray-600">
+                <a href="docs.html" class="hover:text-black transition-colors">Documentation</a>
+                <a href="examples.html" class="hover:text-black transition-colors">Examples</a>
+            </nav>
         </div>
-       
-        <div class="hidden md:flex items-center gap-8 text-xs font-medium text-zinc-400 uppercase tracking-widest">
-            <a href="https://github.com/elitsuv/oxtan" target="_blank" class="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-lg border border-white/5 hover:bg-white/10 transition-all">
-                <span id="star-count">...</span> STARS
+        <div>
+            <!-- Clean rounded pill nav for GitHub -->
+            <a href="https://github.com/elitsuv/oxtan" target="_blank" class="flex items-center gap-2 text-sm font-semibold bg-black text-white px-5 py-2.5 rounded-full hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5 duration-200">
+                <i data-lucide="github" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Star on GitHub</span>
             </a>
         </div>
-        <div class="md:hidden w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-    </nav>
+    </header>
 
-    <main class="relative z-10 max-w-5xl mx-auto px-6 pt-48 pb-32">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-           
-            <div class="text-left">
-                <div class="inline-flex items-center gap-2 px-3 py-1 border border-red-500/20 bg-red-500/5 rounded text-[10px] mono text-red-400 mb-8 uppercase tracking-tighter font-bold">
-                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                    Version 1.0.0 Stable Build
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="max-w-6xl mx-auto px-6 py-20 flex flex-col md:flex-row items-center gap-16 relative z-10">
+            <div class="md:w-1/2">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 border border-black/10 bg-white/50 rounded-full text-xs font-semibold text-gray-600 mb-8 uppercase tracking-widest glass">
+                    <span class="w-2 h-2 rounded-full bg-black animate-pulse"></span>
+                    OxtanDB v3 is live
                 </div>
-                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tighter mb-6 leading-[0.9]">
-                    REDUCED <br/> <span class="text-zinc-500">SYNTAX</span> <br/> ENGINE.
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
+                    A Secure Database Wrapper & CLI.
                 </h1>
-                <p class="text-zinc-400 max-w-md text-sm md:text-base leading-relaxed mb-10">
-                    OXTAN is an industrial-grade MySQL interface.<br/>
-                    Secure. Dictionary-driven. Zero boilerplate.
+                <p class="text-lg text-gray-600 mb-10 max-w-lg leading-relaxed">
+                    Oxtan eliminates repetitive boilerplate. It provides a fluent, developer-friendly API that handles connection pooling, prevents SQL injection, and manages profiles via terminal.
                 </p>
-            </div>
-
-            <div class="industrial-border bg-black/40 backdrop-blur-sm rounded-xl overflow-hidden p-1 shadow-2xl">
-                <div class="bg-zinc-900/50 p-4 border-b border-white/5 flex items-center justify-between">
-                    <div class="flex gap-1.5">
-                        <div class="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
-                        <div class="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
-                        <div class="w-2.5 h-2.5 rounded-full bg-zinc-700"></div>
-                    </div>
-                    <span class="text-[10px] mono text-zinc-500 tracking-widest">OXTAN_CORE_MODULE</span>
-                </div>
-                <div class="p-6 mono text-xs md:text-sm leading-relaxed overflow-x-auto bg-[#0a0a0a]">
-                    <p><span class="text-zinc-600">01</span> <span class="text-red-500">from</span> oxtan <span class="text-red-500">import</span> OxtanDB</p>
-                    <p><span class="text-zinc-600">02</span> </p>
-                    <p><span class="text-zinc-600">03</span> <span class="text-zinc-500"># Auto-connect via Env Vars</span></p>
-                    <p><span class="text-zinc-600">04</span> <span class="text-red-500">with</span> OxtanDB() <span class="text-red-500">as</span> db:</p>
-                    <p><span class="text-zinc-600">05</span> &nbsp;&nbsp;&nbsp;db.insert(<span class="text-zinc-400">"logs"</span>, {</p>
-                    <p><span class="text-zinc-600">06</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-zinc-400">"status"</span>: <span class="text-green-500">"ACTIVE"</span>,</p>
-                    <p><span class="text-zinc-600">07</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-zinc-400">"origin"</span>: <span class="text-zinc-400">"NODE_01"</span></p>
-                    <p><span class="text-zinc-600">08</span> &nbsp;&nbsp;&nbsp;})</p>
+                <div class="flex gap-4">
+                    <a href="docs.html" class="inline-flex justify-center items-center h-12 px-8 bg-black text-white font-medium rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                        Get Started
+                    </a>
+                    <a href="docs.html" class="inline-flex justify-center items-center h-12 px-8 bg-white/50 backdrop-blur-sm border border-gray-200 text-black font-medium rounded-full hover:bg-white/80 transition-all shadow-sm">
+                        Documentation
+                    </a>
                 </div>
             </div>
-        </div>
-
-        <!-- Coming Soon Timeline -->
-        <div class="mt-32 max-w-3xl mx-auto">
-            <h2 class="text-4xl md:text-5xl font-extrabold tracking-tighter text-center mb-16">
-                COMING <span class="text-zinc-500">SOON</span>
-            </h2>
-
-            <div class="relative">
-                <!-- Vertical line -->
-                <div class="absolute left-4 md:left-1/2 h-full w-[2px] bg-gradient-to-b from-red-500/30 via-red-600/20 to-transparent transform md:-translate-x-1/2"></div>
-
-                <div class="space-y-16 md:space-y-24 relative z-10">
-                    <!-- Item 1 -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-12">
-                        <div class="md:w-5/12 md:text-right order-2 md:order-1">
-                            <div class="text-xs mono text-zinc-500 uppercase tracking-widest mb-2">Q1 2026</div>
-                            <h3 class="text-2xl font-bold">Beta Release v1.0</h3>
-                            <p class="text-zinc-400 mt-2 text-sm">Stable core + documentation</p>
-                        </div>
-                        <div class="md:w-5/12 order-1 md:order-2">
-                            <div class="glass-tablet rounded-xl p-6 border-l-4 border-red-600 relative">
-                                <div class="absolute -left-3 top-1/2 w-6 h-6 rounded-full bg-red-600/20 border-2 border-red-500 flex items-center justify-center transform -translate-y-1/2">
-                                    <div class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                                </div>
-                                <p class="text-sm text-zinc-300">Official launch on PyPI soon!</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Item 2 -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-12">
-                        <div class="md:w-5/12 md:text-right order-2">
-                            <div class="text-xs mono text-zinc-500 uppercase tracking-widest mb-2">Q2 2026</div>
-                            <h3 class="text-2xl font-bold">MySQL Support</h3>
-                            <p class="text-zinc-400 mt-2 text-sm">Same reduced syntax → MySQL</p>
-                        </div>
-                        <div class="md:w-5/12 order-1">
-                            <div class="glass-tablet rounded-xl p-6 border-l-4 border-red-600/70 relative">
-                                <p class="text-sm text-zinc-300">One codebase → Multiple backends</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Item 3 -->
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-12">
-                        <div class="md:w-5/12 md:text-right order-2">
-                            <div class="text-xs mono text-zinc-500 uppercase tracking-widest mb-2">Q3–Q4 2026</div>
-                            <h3 class="text-2xl font-bold">Fast!</h3>
-                            <p class="text-zinc-400 mt-2 text-sm">Connection pooling • Query caching • Observability</p>
-                        </div>
-                        <div class="md:w-5/12 order-1">
-                            <div class="glass-tablet rounded-xl p-6 border-l-4 border-red-600/40 relative">
-                                <p class="text-sm text-zinc-300">Built for production scale</p>
-                            </div>
+            
+            <div class="md:w-1/2 flex justify-center w-full">
+                <!-- Premium Glass Animated Box -->
+                <div class="animated-border-box w-full max-w-lg">
+                    <div class="p-6 h-full flex flex-col items-center justify-center min-h-[300px]">
+                        <img src="./assets/oxtan.png" alt="Oxtan Mascot" class="max-h-[250px] object-contain drop-shadow-xl z-10 transition-transform duration-500 hover:scale-105">
+                        <div class="mt-6 text-sm font-mono text-gray-500 bg-gray-100/50 px-4 py-2 rounded border border-gray-200/50 backdrop-blur-md text-center w-full">
+                            $ python main.py --help
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section class="max-w-6xl mx-auto px-6 py-24 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold tracking-tight mb-4">Engineered for Python Developers</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto text-lg">Manage your database connections from the CLI and query securely from your code.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass p-8 rounded-2xl transition-transform hover:-translate-y-1 duration-300">
+                    <div class="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center mb-6 shadow-md">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Zero Boilerplate</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Perform standard CRUD operations with single-line methods. Focus on your logic, not the connection strings.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="glass p-8 rounded-2xl transition-transform hover:-translate-y-1 duration-300">
+                    <div class="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center mb-6 shadow-md">
+                        <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Security First</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">100% protection against SQL injection using enforced parameterized queries out of the box.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass p-8 rounded-2xl transition-transform hover:-translate-y-1 duration-300">
+                    <div class="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center mb-6 shadow-md">
+                        <i data-lucide="terminal-square" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">CLI Architecture</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">Manage connection profiles, view schemas, and query tables directly from your terminal using the modular CLI.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Solution Section (Code) -->
+        <section class="max-w-6xl mx-auto px-6 py-24 relative z-10">
+            <div class="animated-border-box w-full">
+                <div class="grid grid-cols-1 lg:grid-cols-2 p-8 md:p-12 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight mb-6">Powerful Terminal Tools</h2>
+                        <p class="text-gray-600 text-lg mb-8">
+                            Oxtan provides a scalable command line interface. Manage multiple database profiles locally and switch between them instantly.
+                        </p>
+                        <ul class="space-y-4 mb-8">
+                            <li class="flex items-center gap-3 text-gray-700 font-medium">
+                                <i data-lucide="check" class="w-5 h-5 text-black"></i> <code>python main.py add-db</code>
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-700 font-medium">
+                                <i data-lucide="check" class="w-5 h-5 text-black"></i> <code>python main.py tables</code>
+                            </li>
+                            <li class="flex items-center gap-3 text-gray-700 font-medium">
+                                <i data-lucide="check" class="w-5 h-5 text-black"></i> <code>python main.py count &lt;table&gt;</code>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-900 rounded-xl p-6 shadow-2xl relative overflow-hidden text-gray-300 font-mono text-sm leading-loose">
+                        <div class="flex items-center gap-2 mb-4 border-b border-gray-700 pb-4">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <p><span class="text-green-400">$</span> python main.py use prod_db</p>
+                        <p class="text-gray-500 mb-4">> Profile 'prod_db' is now active.</p>
+                        <p><span class="text-green-400">$</span> python main.py tables</p>
+                        <p class="text-blue-300">users</p>
+                        <p class="text-blue-300">transactions</p>
+                        <p class="text-blue-300 mb-4">audit_logs</p>
+                        <p><span class="text-green-400">$</span> python main.py count users</p>
+                        <p class="text-white font-bold">> 1,402,993 rows</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="max-w-4xl mx-auto px-6 py-24 text-center relative z-10">
+            <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-8">Ready to streamline your workflow?</h2>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/elitsuv/oxtan" target="_blank" class="inline-flex justify-center items-center h-14 px-8 bg-black text-white font-bold rounded-full hover:bg-gray-800 transition-transform hover:-translate-y-1 shadow-lg gap-2">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                    Clone Repository
+                </a>
+                <a href="docs.html" class="inline-flex justify-center items-center h-14 px-8 glass border-gray-300 text-black font-bold rounded-full hover:bg-white/90 transition-transform hover:-translate-y-1 shadow-sm">
+                    Read Documentation
+                </a>
+            </div>
+        </section>
     </main>
 
-    <footer class="fixed bottom-0 left-0 right-0 border-t border-white/5 bg-black/80 backdrop-blur-md z-50">
-        <div class="max-w-6xl mx-auto px-6 h-12 flex items-center justify-between mono text-[10px] text-zinc-500 uppercase tracking-widest">
-            <div class="flex gap-6">
-                <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> PyPI: Coming Soon</span>
-                <span class="hidden md:inline">Status: Pre-Release</span>
+    <!-- Footer -->
+    <footer class="glass border-t border-gray-200 py-12 relative z-10 mt-auto">
+        <div class="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2 font-bold tracking-tight text-lg">
+                <img src="./assets/oxtan.png" alt="Oxtan Logo" class="w-6 h-6 object-contain">
+                Oxtan
             </div>
-            <div>© 2026 By Elitsuv</div>
+            <div class="flex gap-6 text-sm text-gray-500 font-medium">
+                <a href="index.html" class="hover:text-black transition-colors">Home</a>
+                <a href="docs.html" class="hover:text-black transition-colors">Documentation</a>
+                <a href="examples.html" class="hover:text-black transition-colors">Examples</a>
+                <a href="https://github.com/elitsuv/oxtan" class="hover:text-black transition-colors">GitHub</a>
+            </div>
+            <div class="text-sm text-gray-400 font-mono">
+                MIT License &copy; 2026 Elitsuv
+            </div>
         </div>
     </footer>
 
     <script>
-        (function fetchStars(){
-            fetch(`https://api.github.com/repos/elitsuv/oxtan`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('star-count').textContent = data.stargazers_count || '1.2k';
-                })
-                .catch(() => document.getElementById('star-count').textContent = '1.2k');
-        })();
+        lucide.createIcons();
     </script>
 </body>
 </html>
