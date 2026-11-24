@@ -1,6 +1,6 @@
 # OxtanDB User Guide
 
-OxtanDB is a fast, safe, zero-bloat command-line tool for inspecting, querying, and managing MySQL databases.
+OxtanDB is a lightweight command-line tool for inspecting, querying, and managing MySQL databases.
 
 ---
 
@@ -118,7 +118,7 @@ oxtan peek <table-name> [--limit N]
 # or using short alias:
 oxtan p users --limit 10
 ```
-Default limit is 10 rows.
+Default limit is 5 rows.
 
 ---
 
