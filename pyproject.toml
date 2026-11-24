@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oxtan"
+version = "0.1.0"
+description = "Fast, safe command-line tool for MySQL."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = [
+    "mysql-connector-python>=8.0.0",
+]
+
+[project.scripts]
+oxtan = "oxtan.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+timeout = 30
+markers = [
+    "integration: integration tests requiring a live MySQL instance (skipped by default unless OXTAN_TEST_DSN is set)",
+]
+addopts = "--strict-markers"
+
+[tool.coverage.run]
+source = ["src/oxtan"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
