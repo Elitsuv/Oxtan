@@ -52,7 +52,6 @@ def main(args: Optional[List[str]] = None) -> int:
     if args is None:
         args = sys.argv[1:]
 
-    # If no arguments given, display banner and cheat sheet and exit 0
     if not args:
         print_banner_and_cheatsheet(force=True, stream=sys.stdout)
         return 0
@@ -83,7 +82,6 @@ def main(args: Optional[List[str]] = None) -> int:
         result = run_func(parsed, pm, quiet=parsed.quiet)
         return int(result) if result is not None else 0
     except KeyboardInterrupt:
-        # 130 Ctrl+C without traceback
         sys.stderr.write("\n")
         return 130
     except UsageError as e:

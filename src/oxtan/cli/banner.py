@@ -1,7 +1,5 @@
 """Oxtan banner and cheat sheet.
 
-An original hand-drawn-style typography mark (4 lines, 26 columns).
-Contains NO logos, NO dolphins, and NO Oracle/MySQL imagery.
 Suppressed when piped, in quiet mode, or in data-producing commands.
 Respects NO_COLOR.
 """

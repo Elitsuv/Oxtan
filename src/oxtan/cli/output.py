@@ -43,7 +43,6 @@ def format_table(
     if not cols:
         return "(no columns)"
 
-    # Compute maximum width per column
     col_widths: Dict[str, int] = {col: len(col) for col in cols}
 
     for row in rows:
@@ -51,7 +50,6 @@ def format_table(
             formatted = truncate_cell(row.get(col), max_width=max_col_width)
             col_widths[col] = max(col_widths[col], len(formatted))
 
-    # Build header and separator
     header_parts = [col.ljust(col_widths[col]) for col in cols]
     header_line = " | ".join(header_parts)
     separator_line = "-+-".join("-" * col_widths[col] for col in cols)
@@ -71,7 +69,6 @@ def format_table(
 def format_json(rows: Sequence[Dict[str, Any]]) -> str:
     """Format rows as a JSON array."""
 
-    # Convert non-serializable objects (datetime, bytes) using str default
     def json_default(obj: Any) -> Any:
         if isinstance(obj, (bytes, bytearray)):
             return f"<blob: {len(obj)} bytes>"
@@ -132,7 +129,7 @@ def print_results(
         safe_write(out, format_json(rows) + "\n")
     elif fmt == "csv":
         safe_write(out, format_csv(columns, rows))
-    else:  # table default
+    else:
         safe_write(out, format_table(columns, rows) + "\n")
         if not quiet:
             row_count = len(rows)

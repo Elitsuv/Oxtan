@@ -142,8 +142,6 @@ def execute_query(
                         break
                     yield rows
 
-            # We need to drain rows while connection is open, so return materialized or generator with owned conn
-            # For generator streaming while managing connection:
             all_chunks = list(row_chunks())
             return column_names, (c for c in all_chunks)
         except Exception as e:

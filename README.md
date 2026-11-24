@@ -5,65 +5,64 @@
 <h1 align="center">OxtanDB</h1>
 
 <p align="center">
-  <strong>Fast, safe, zero-bloat command-line tool for MySQL.</strong>
+  <strong>Command-line tool for MySQL — fast lookups, read-only by default.</strong>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="License" /></a>
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/python-3.10%2B-brightgreen.svg" alt="Python Version" /></a>
+  <img src="https://img.shields.io/badge/status-beta%20(v0.1.0)-orange.svg" alt="Beta Status" />
 </p>
 
 ---
 
-![OxtanDB Terminal Banner](assets/screenshots/banner.png)
+> **Beta release (`v0.1.0`):** Expect rough edges and breaking changes before `1.0`. Bug reports and feedback are welcome.
 
-OxtanDB is a command-line tool for inspecting, querying, and managing MySQL databases. Built from scratch with a security-first architecture, sub-second startup latency (<0.20s), and clean stdout/stderr streaming suitable for piping into tools like `jq` and `cut`.
-
----
+OxtanDB is a Python CLI for inspecting, querying, and managing MySQL databases. It saves named connection profiles locally, keeps queries read-only unless explicitly overridden, and separates `stdout` data from `stderr` diagnostics so results pipe cleanly into tools like `jq` and `cut`.
 
 ## Highlights
 
-- **Instant Startup**: Launches in under 0.20 seconds with lazy-loaded drivers and zero heavy startup dependencies.
-- **SQL Injection Defense**: Every table and column identifier is validated against `^[a-zA-Z0-9_]+\Z` and quoted with backticks. All values use parameterized queries (`%s`).
-- **Read-Only by Default**: Queries run in `SET SESSION TRANSACTION READ ONLY` mode. Destructive queries require `--write` and interactive confirmation.
-- **Credential Protection**: No `--password` command-line flag. Passwords are typed via masked prompts (`getpass`) and stored in user-isolated `~/.oxtan/profiles.json` with `0o600` permissions.
-- **Pipeline-Friendly**: Pure data goes to `stdout`, diagnostic banners and errors go to `stderr`. `oxtan peek users --format json | jq .` works out of the box.
-- **Zero Heavy Bloat**: Native table, JSON, and CSV formatters without Pandas or external rendering libraries.
+- **Read-Only by Default**: `query` runs inside `SET SESSION TRANSACTION READ ONLY`. Modifying queries require `--write` and confirmation (`[y/N]`, or `--yes` in scripts).
+- **Identifier & Parameter Safety**: Table and column names are validated against `^[a-zA-Z0-9_]+\Z` (max 64 chars) and backtick-quoted. Values use `%s` bind parameters.
+- **No `--password` Flag**: Passwords are read via masked prompt (`getpass`) and stored locally in `~/.oxtan/profiles.json` (`0o600` on POSIX).
+- **Lazy Driver Loading**: `mysql-connector-python` is imported only when running a database command; `--help` and `about` do not load the driver.
+- **Pipeline-Friendly**: Query output goes to `stdout`; banners, row counts, and errors go to `stderr`.
 
 ---
 
 ## Installation
 
-### Recommended: Using `pipx`
+### Using `pipx`
 ```bash
 pipx install git+https://github.com/Elitsuv/Oxtan.git
 ```
 
-### Using standard `pip`
+### Using `pip`
 ```bash
-pip install .
+pip install git+https://github.com/Elitsuv/Oxtan.git
 ```
+*(Or `pip install .` inside a cloned repository.)*
 
-### Run without installation
+### Run without adding to `PATH`
+If `oxtan` is not recognized after installing (common with `pip install --user` on Windows), run it as a module:
 ```bash
 python -m oxtan --help
 ```
 
 ---
 
-## Quickstart (30 Seconds)
+## Quickstart
 
 ### 1. Add a Database Profile
 ```bash
 oxtan add-db dev --host 127.0.0.1 --port 3306 --user root --database my_service
 ```
-*(You will be securely prompted for your password)*
+*(Prompts securely for your password.)*
 
-### 2. Check System Health
+### 2. Check Connectivity
 ```bash
 oxtan doctor
 ```
-![Doctor Command](assets/screenshots/doctor.png)
 
 ### 3. List and Describe Tables
 ```bash
@@ -73,7 +72,6 @@ oxtan tables
 # Inspect column schema (alias: s)
 oxtan schema users
 ```
-![Schema Command](assets/screenshots/schema.png)
 
 ### 4. Peek and Count Data
 ```bash
@@ -83,7 +81,6 @@ oxtan peek users --limit 5
 # Quick row count
 oxtan count users
 ```
-![Peek Command](assets/screenshots/peek.png)
 
 ### 5. Run Queries
 ```bash
@@ -97,7 +94,6 @@ oxtan query "SELECT id, email FROM users" --format csv > users.csv
 # Modify data with explicit confirmation
 oxtan query "UPDATE users SET active = 0 WHERE id = 42" --write
 ```
-![Query Command](assets/screenshots/query.png)
 
 ---
 
@@ -105,81 +101,76 @@ oxtan query "UPDATE users SET active = 0 WHERE id = 42" --write
 
 | Command | Alias | Description | Output Formats |
 | :--- | :--- | :--- | :--- |
-| `add-db` | - | Configure a new MySQL connection profile | - |
+| `add-db` | - | Save a MySQL connection profile | - |
 | `use` | - | Switch the active connection profile | - |
-| `dbs` | - | List all configured database profiles | - |
-| `current` | - | Display currently active profile | - |
+| `dbs` | - | List all saved database profiles | table, json, csv |
+| `current` | - | Display currently active profile | text |
 | `tables` | `t` | List all tables in active database | table, json, csv |
 | `schema` | `s` | Inspect column structure and types of a table | table, json, csv |
-| `peek` | `p` | Preview the first N rows of a table | table, json, csv |
+| `peek` | `p` | Preview the first N rows of a table (default: `5`) | table, json, csv |
 | `count` | - | Count total rows in a table | text |
 | `query` | `q` | Execute SQL query (read-only by default) | table, json, csv |
 | `doctor` | - | Run environment and connectivity diagnostics | text |
-| `about` | - | Display ASCII doodle mark and quick cheatsheet | text |
+| `about` | - | Display banner and quick command reference | text |
 
 ### Global Flags
 
 - `--version`: Show tool version (`oxtan 0.1.0`) and exit.
-- `--quiet`: Suppress decorative banners, hints, and informational messages.
-- `--no-color`: Disable ANSI color codes (also triggered by `NO_COLOR=1`).
-- `--debug`: Show full Python stack traces on errors (default shows one clean error line with actionable fix hint).
+- `--quiet`: Suppress banners, hints, and row counts.
+- `--no-color`: Disable ANSI color codes (also respected via `NO_COLOR`).
+- `--debug`: Show full Python tracebacks on errors (default prints one error line and a hint).
 
 ---
 
-## Output Redirection and Piping
+## Piping & Stream Separation
 
-OxtanDB strictly separates output channels:
 - **`stdout`**: Query results, tables, JSON, CSV, row counts.
-- **`stderr`**: Connection status, banners, warnings, errors.
+- **`stderr`**: Banners, status notes, warnings, errors.
 
-This enables direct shell composition:
 ```bash
-# Pipe formatted JSON directly into jq
+# Pipe JSON into jq
 oxtan query "SELECT id, name FROM users" --format json | jq '.[] | select(.id > 10)'
 
-# Stream CSV into standard Unix tools
+# Stream CSV into Unix tools
 oxtan peek transactions --format csv | cut -d',' -f2
 ```
 
----
-
-## Performance & Startup Benchmarks
-
-OxtanDB is engineered for instant CLI feedback with zero heavy dependencies at startup:
-
-| Metric | Legacy Prototype | OxtanDB v0.1.0 | Improvement |
-| :--- | :--- | :--- | :--- |
-| **CLI `--help` Latency** | ~5,900 ms (5.90s) | **~178 ms (0.18s)** | **33x faster** |
-| **Peak Startup Memory** | ~65 MB | **~12 MB** | **5.4x lighter** |
-| **Startup Imports** | Eager Pandas & Driver | **Lazy Driver Loading** | Clean architecture |
-
-*Measured on Python 3.13.0 on Windows 11 AMD64 using `python -X importtime main.py --help`.*
+For full command details and CI usage (`OXTAN_PASSWORD`), see [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 ---
 
-## Architecture & Security
+## Performance
 
-- **SQL Injection Defense**: Every table and column identifier is strictly validated against `^[a-zA-Z0-9_]+\Z` (max 64 characters) and quoted with backticks. All values use parameterized `%s` placeholders.
-- **Read-Only Session Enforcement**: Queries run under `SET SESSION TRANSACTION READ ONLY` by default. Write queries require `--write` and explicit confirmation.
-- **Credential Storage**: Passwords are saved in `~/.oxtan/profiles.json` with restricted permissions (`0o600` on POSIX systems; user-profile folder ACL isolation on Windows).
-- **User Guide**: For complete command references, piping examples, and workflows, see [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
+- `oxtan --help` avoids importing `mysql-connector-python`, Pandas, or external table libraries.
+- Measured on Python 3.13.0 (Windows 11): cumulative `oxtan.cli.main` import time is **~272 ms** via `python -X importtime -m oxtan --help`, with warm subprocess wall time around **0.46 s**.
+
+---
+
+## Security Model
+
+**What Oxtan guarantees:**
+- Strict identifier validation (`^[a-zA-Z0-9_]+\Z`, max 64 chars) and backtick quoting on structured commands (`schema`, `peek`, `count`).
+- `SET SESSION TRANSACTION READ ONLY` enforced on `query` unless `--write` is passed.
+- No `--password` CLI flag; `OXTAN_PASSWORD` is only read when stdin is non-interactive.
+- Atomic writes to `~/.oxtan/profiles.json` with `0o600` permissions on POSIX.
+
+**Limits:**
+- Passing `--write` runs raw SQL directly against MySQL — review destructive statements carefully before confirming.
+- Passwords in `~/.oxtan/profiles.json` rely on filesystem permissions rather than an OS keyring.
 
 ---
 
 ## Dependencies & Driver
 
-- **Default Driver**: `mysql-connector-python>=8.0.0` (pure-Python official connector supporting MySQL 8.0+ `caching_sha2_password` out of the box).
-- **Driver License**: Licensed under GPLv2 with the Oracle Universal FOSS Exception (FLOSS Exception), which permits distribution and use alongside Apache-2.0 software without GPL copyleft contamination.
-- **Alternative**: PyMySQL (MIT) is also compatible; note that it requires the external `cryptography` package for `caching_sha2_password`.
+- **Driver**: `mysql-connector-python>=8.0.0` (official MySQL connector with built-in `caching_sha2_password` support).
+- **Driver License**: GPLv2 with the Oracle Universal FOSS Exception (FLOSS Exception), permitting use alongside Apache-2.0 software.
 
 ---
 
 ## Disclaimer
 
-OxtanDB is an independent open-source project and is not affiliated, endorsed, or sponsored by Oracle Corporation or MySQL. MySQL is a registered trademark of Oracle Corporation.
-
----
+OxtanDB is an independent open-source project and is not affiliated with, endorsed by, or sponsored by Oracle Corporation or MySQL. MySQL is a registered trademark of Oracle Corporation.
 
 ## License
 
-This project is licensed under the [Apache License, Version 2.0](LICENSE).
+[Apache License, Version 2.0](LICENSE)
