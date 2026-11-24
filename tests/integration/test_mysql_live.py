@@ -41,9 +41,7 @@ def test_mysql_live_roundtrip(tmp_path: pytest.TempPathFactory) -> None:
         )
 
     # 1. Add DB profile
-    res = run_oxtan(
-        "add-db", "--name", "livetest", "--host", host, "--port", str(port), "--user", user, "--database", database
-    )
+    res = run_oxtan("add-db", "livetest", "--host", host, "--port", str(port), "--user", user, "--database", database)
     assert res.returncode == 0, f"add-db failed: {res.stderr}"
 
     # 2. Check current and use
@@ -68,7 +66,7 @@ def test_mysql_live_roundtrip(tmp_path: pytest.TempPathFactory) -> None:
     _, profile = profile_mgr.get_profile()
     assert profile is not None
 
-    with get_connection(profile) as conn:
+    with get_connection(profile, read_only=False) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 "CREATE TABLE IF NOT EXISTS _oxtan_live_test ("
@@ -122,7 +120,7 @@ def test_mysql_live_roundtrip(tmp_path: pytest.TempPathFactory) -> None:
         assert res.returncode == 1
         assert "read-only" in res.stderr.lower() or "read only" in res.stderr.lower()
     finally:
-        with get_connection(profile) as conn:
+        with get_connection(profile, read_only=False) as conn:
             with conn.cursor() as cur:
                 cur.execute("DROP TABLE IF EXISTS _oxtan_live_test")
             conn.commit()
