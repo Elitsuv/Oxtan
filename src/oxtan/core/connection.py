@@ -4,17 +4,28 @@ Implements context-managed database connections, read-only session enforcement,
 stale-connection error handling, and chunked cursor streaming.
 """
 
+import re
 import time
 from contextlib import contextmanager
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple
 
 from oxtan.core.errors import DatabaseConnectionError, QueryExecutionError
 
+_SQL_STRING_LITERAL_RE = re.compile(r"'(?:\\.|[^'])*'|\"(?:\\.|[^\"])*\"")
+_READ_ONLY_FILE_CLAUSE_RE = re.compile(r"\bINTO\s+(?:OUTFILE|DUMPFILE)\b|\bLOAD\s+DATA\b", re.IGNORECASE)
+
+
+def _redact_secret(text: str, secret: str) -> str:
+    """Mask non-empty secrets so driver exceptions never leak passwords."""
+    if secret:
+        return text.replace(secret, "***")
+    return text
+
 
 def _map_mysql_error(error: Exception, profile: Dict[str, Any]) -> DatabaseConnectionError:
     """Map driver errors to user-friendly DatabaseConnectionError with safe hints."""
     errno = getattr(error, "errno", None)
-    err_msg = str(error)
+    err_msg = _redact_secret(str(error), str(profile.get("password", "")))
 
     # 1045: Access denied
     if errno == 1045:
@@ -85,6 +96,7 @@ def get_connection(
             password=profile.get("password", ""),
             database=profile.get("database"),
             connection_timeout=timeout,
+            allow_local_infile=False,
         )
     except Exception as e:
         raise _map_mysql_error(e, profile) from e
@@ -117,6 +129,14 @@ def execute_query(
     Returns:
         (column_names, chunk_generator)
     """
+    if read_only:
+        stripped_sql = _SQL_STRING_LITERAL_RE.sub(" ", sql)
+        if _READ_ONLY_FILE_CLAUSE_RE.search(stripped_sql):
+            raise QueryExecutionError(
+                "File export/import clauses (INTO OUTFILE/DUMPFILE, LOAD DATA) are blocked in read-only mode.",
+                fix_hint="Use --write to allow file operations.",
+            )
+
     with get_connection(profile, read_only=read_only) as conn:
         cursor = conn.cursor(dictionary=True)
         try:
@@ -151,7 +171,7 @@ def execute_query(
                 except Exception:
                     pass  # nosec B110
             # Check if this is a read-only transaction violation
-            err_msg = str(e)
+            err_msg = _redact_secret(str(e), str(profile.get("password", "")))
             msg_lower = err_msg.lower()
             if "read-only" in msg_lower or "read only" in msg_lower or getattr(e, "errno", None) == 1792:
                 raise QueryExecutionError(

@@ -7,6 +7,8 @@ restricted permissions on POSIX systems (0o600).
 import json
 import os
 import re
+import stat
+import sys
 import tempfile
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -70,6 +72,17 @@ class ProfileManager:
         """Load profiles from disk. Returns empty structure if file does not exist."""
         if not os.path.exists(self.config_path):
             return {"profiles": {}, "active": None}
+
+        if os.name == "posix":
+            try:
+                mode = stat.S_IMODE(os.stat(self.config_path).st_mode)
+                if mode & 0o077:
+                    sys.stderr.write(
+                        f"Warning: '{self.config_path}' has permissive mode {oct(mode)}. "
+                        "Run 'chmod 600' to protect credentials.\n"
+                    )
+            except OSError:
+                pass  # nosec B110
 
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
