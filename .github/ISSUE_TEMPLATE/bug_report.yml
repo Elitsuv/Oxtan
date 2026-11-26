@@ -1,0 +1,83 @@
+name: Bug Report
+description: Report a reproducible bug, crash, or incorrect CLI behavior.
+title: "[Bug]: "
+labels: ["ox: bug", "ox: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <p align="center">
+          <img src="https://raw.githubusercontent.com/Elitsuv/Oxtan/main/assets/oxtan.png" width="88" alt="OxtanDB" />
+        </p>
+
+        Provide exact versions and command output so the issue can be reproduced without guesswork. Never paste database passwords.
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain / Component
+      description: Select the subsystem affected by this bug.
+      options:
+        - "ox: cli (parsing, flags, exit codes, banner)"
+        - "ox: mysql (connection, driver, SQL execution, read-only mode)"
+        - "ox: profiles (add-db, use, dbs, current, profiles.json)"
+        - "ox: output (table, json, csv, piping, encoding)"
+        - "ox: ci (packaging, install, workflows)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: input
+    id: oxtan_version
+    attributes:
+      label: Oxtan Version
+      placeholder: "e.g. 0.1.0 (from oxtan --version)"
+    validations:
+      required: true
+
+  - type: input
+    id: runtime_versions
+    attributes:
+      label: Python & MySQL Versions
+      placeholder: "e.g. Python 3.12.4, MySQL 8.0.42"
+    validations:
+      required: true
+
+  - type: textarea
+    id: command_and_output
+    attributes:
+      label: Command Run & Error Output
+      description: Run with --debug if applicable. Redact hostnames, usernames, and secrets.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_vs_actual
+    attributes:
+      label: Expected vs Actual Behavior
+      placeholder: |
+        Expected: ...
+        Actual: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true

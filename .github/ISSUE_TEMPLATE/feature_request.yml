@@ -1,0 +1,52 @@
+name: Feature Request
+description: Propose a new CLI command, flag, or behavioral improvement.
+title: "[Feat]: "
+labels: ["ox: feat", "ox: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <p align="center">
+          <img src="https://raw.githubusercontent.com/Elitsuv/Oxtan/main/assets/oxtan.png" width="88" alt="OxtanDB" />
+        </p>
+
+        Keep proposals focused on concrete CLI workflows, safety guarantees, or performance.
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain / Component
+      description: Select the primary area this change targets.
+      options:
+        - "ox: cli (commands, aliases, UX)"
+        - "ox: mysql (queries, transactions, driver behavior)"
+        - "ox: profiles (configuration and switching)"
+        - "ox: output (formats, piping, encoding)"
+        - "ox: docs (README, user guide)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What workflow is slow, unsafe, or unsupported right now?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed CLI Usage
+      description: Show the exact command or flag signature you expect.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints & Safety Notes
+      description: Any read-only rules, backward-compatibility, or startup-latency impacts?
+    validations:
+      required: false

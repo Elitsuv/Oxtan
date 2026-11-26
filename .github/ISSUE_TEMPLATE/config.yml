@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerability (Private Advisory)
+    url: https://github.com/Elitsuv/Oxtan/security/advisories/new
+    about: Report active vulnerabilities or credential leaks privately instead of opening a public issue.
