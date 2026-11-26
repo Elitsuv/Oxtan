@@ -34,6 +34,7 @@ def test_get_connection_success(mock_mysql_connector):
         password="secret_password",
         database="my_db",
         connection_timeout=10,
+        allow_local_infile=False,
     )
     mock_conn.close.assert_called_once()
 
@@ -166,3 +167,56 @@ def test_map_mysql_errors(mock_mysql_connector):
         with get_connection(profile):
             pass
     assert "Database connection error" in str(exc.value)
+
+
+def test_error_redacts_password(mock_mysql_connector):
+    mock_driver, mock_conn, mock_cursor = mock_mysql_connector
+    profile = {"host": "localhost", "port": 3306, "user": "root", "password": "my_secret_123", "database": "db"}
+
+    mock_driver.connect.side_effect = RuntimeError("Auth failed using password my_secret_123 on host")
+    with pytest.raises(DatabaseConnectionError) as exc_info:
+        with get_connection(profile):
+            pass
+    assert "my_secret_123" not in str(exc_info.value)
+    assert "***" in str(exc_info.value)
+
+
+def test_execute_query_error_redacts_password(mock_mysql_connector):
+    mock_driver, mock_conn, mock_cursor = mock_mysql_connector
+    profile = {"host": "localhost", "port": 3306, "user": "root", "password": "my_secret_123", "database": "db"}
+
+    mock_cursor.execute.side_effect = [
+        None,  # SET SESSION TRANSACTION READ ONLY
+        RuntimeError("Driver leaked my_secret_123 in trace"),
+    ]
+    with pytest.raises(QueryExecutionError) as exc_info:
+        execute_query(profile, "SELECT 1", read_only=True)
+    assert "my_secret_123" not in str(exc_info.value)
+    assert "***" in str(exc_info.value)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT * FROM users INTO OUTFILE '/tmp/out.csv'",
+        "SELECT * FROM users INTO DUMPFILE '/tmp/out.bin'",
+        "LOAD DATA INFILE '/etc/passwd' INTO TABLE users",
+    ],
+)
+def test_execute_query_blocks_file_clauses_in_read_only(mock_mysql_connector, sql):
+    profile = {"host": "localhost", "port": 3306, "user": "root", "password": "", "database": "db"}
+    with pytest.raises(QueryExecutionError) as exc_info:
+        execute_query(profile, sql, read_only=True)
+    assert "read-only mode" in str(exc_info.value).lower()
+    assert "--write" in exc_info.value.fix_hint
+
+
+def test_execute_query_allows_literal_into_outfile_text(mock_mysql_connector):
+    mock_driver, mock_conn, mock_cursor = mock_mysql_connector
+    profile = {"host": "localhost", "port": 3306, "user": "root", "password": "", "database": "db"}
+    mock_cursor.description = [("msg",)]
+    mock_cursor.fetchmany.side_effect = [[{"msg": "into outfile"}], []]
+
+    cols, chunks = execute_query(profile, "SELECT 'into outfile' AS msg", read_only=True)
+    assert cols == ["msg"]
+    assert list(chunks)[0][0]["msg"] == "into outfile"

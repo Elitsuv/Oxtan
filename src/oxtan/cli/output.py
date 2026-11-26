@@ -9,8 +9,12 @@ Data goes to stdout; row counts and notes go to stderr.
 import csv
 import io
 import json
+import re
 import sys
 from typing import Any, Dict, Sequence
+
+_ANSI_ESCAPE_RE = re.compile(r"\x1b(?:\][^\x07\x1b]*(?:\x07|\x1b\\)|\[[0-9;?]*[ -/]*[@-~])")
+_CONTROL_CHAR_RE = re.compile(r"[\x00-\x1f\x7f]")
 
 
 def truncate_cell(val: Any, max_width: int = 40) -> str:
@@ -21,6 +25,8 @@ def truncate_cell(val: Any, max_width: int = 40) -> str:
         s = f"blob({len(val)}B)"
     else:
         s = str(val).replace("\r", " ").replace("\n", " ")
+        s = _ANSI_ESCAPE_RE.sub("", s)
+        s = _CONTROL_CHAR_RE.sub("", s)
 
     if len(s) > max_width:
         return s[: max_width - 3] + "..."

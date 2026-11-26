@@ -22,6 +22,12 @@ def test_truncate_cell():
     assert truncate_cell("hello\nworld\r") == "hello world "
 
 
+def test_truncate_cell_strips_ansi_and_control_chars():
+    assert truncate_cell("\x1b[31mred\x1b[0m\x07") == "red"
+    assert truncate_cell("\x1b]0;pwned\x07safe") == "safe"
+    assert truncate_cell("München 🚀") == "München 🚀"
+
+
 def test_format_table_aligned():
     columns = ["id", "username", "status"]
     rows = [

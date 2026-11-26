@@ -2,6 +2,7 @@
 
 import json
 import os
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -220,3 +221,18 @@ def test_atomic_write_os_error_handling(temp_profile_dir):
         with pytest.raises(ConfigurationError) as exc_info:
             pm.save_profile("dev", "localhost", 3306, "root", "", "test")
         assert "failed to write configuration" in str(exc_info.value).lower()
+
+
+def test_posix_loose_permissions_warns(temp_profile_dir, capsys):
+    config_file = os.path.join(temp_profile_dir, "profiles.json")
+    pm = ProfileManager(config_file)
+    pm.save_profile("dev", "localhost", 3306, "root", "pass", "test")
+
+    with patch("os.name", "posix"):
+        with patch("os.stat", return_value=SimpleNamespace(st_mode=0o100644)):
+            data = pm.load_profiles()
+
+    assert "dev" in data["profiles"]
+    err = capsys.readouterr().err
+    assert "permissive mode" in err.lower()
+    assert "chmod 600" in err.lower()
