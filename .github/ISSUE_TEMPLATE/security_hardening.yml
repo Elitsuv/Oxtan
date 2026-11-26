@@ -1,0 +1,62 @@
+name: Security Hardening
+description: Propose non-sensitive defense-in-depth hardening (use private Security Advisories for active vulnerabilities).
+title: "[Security]: "
+labels: ["ox: security", "ox: triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        <p align="center">
+          <img src="https://raw.githubusercontent.com/Elitsuv/Oxtan/main/assets/oxtan.png" width="88" alt="OxtanDB" />
+        </p>
+
+        > **Reporting an active vulnerability or exploit?** Do **not** open a public issue. Use [GitHub Security Advisories](https://github.com/Elitsuv/Oxtan/security/advisories/new) instead.
+        > Use this form only for proactive hardening, dependency upgrades, or defense-in-depth improvements.
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Security Domain
+      options:
+        - "ox: mysql (connection flags, read-only enforcement, SQL validation)"
+        - "ox: profiles (credential storage, file permissions)"
+        - "ox: output (ANSI/terminal sanitization, secret redaction)"
+        - "ox: ci (dependency audit, bandit, supply chain)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Target Priority
+      options:
+        - "ox: P0-critical"
+        - "ox: P1-high"
+        - "ox: P2-medium"
+        - "ox: P3-low"
+    validations:
+      required: true
+
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk / Threat Vector
+      description: Describe what could go wrong under the current behavior and affected files/functions.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Proposed Hardening
+      description: Describe the exact code/config control to add.
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification Plan
+      description: How should unit tests, bandit, or CLI checks verify this fix?
+    validations:
+      required: true

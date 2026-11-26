@@ -1,0 +1,98 @@
+# OxtanDB repository labels (ox: namespace)
+# Synced automatically to GitHub via .github/workflows/sync-labels.yml
+
+# --- Type ---
+- name: "ox: bug"
+  color: "d73a4a"
+  description: "Confirmed defect or unexpected runtime behavior"
+
+- name: "ox: feat"
+  color: "0e8a16"
+  description: "New command, flag, or functional enhancement"
+
+- name: "ox: security"
+  color: "b60205"
+  description: "Security hardening, sanitization, or credential protection"
+
+- name: "ox: docs"
+  color: "0075ca"
+  description: "Documentation, guides, or README updates"
+
+- name: "ox: perf"
+  color: "fbca04"
+  description: "Startup latency, memory, or query streaming optimization"
+
+- name: "ox: refactor"
+  color: "c5def5"
+  description: "Internal code cleanup with no behavior change"
+
+- name: "ox: test"
+  color: "1d76db"
+  description: "Unit, CLI subprocess, or live MySQL integration tests"
+
+- name: "ox: chore"
+  color: "ededed"
+  description: "Packaging, dependencies, templates, or maintenance"
+
+# --- Domain ---
+- name: "ox: cli"
+  color: "5319e7"
+  description: "Argument parsing, command registry, exit codes, and UX"
+
+- name: "ox: mysql"
+  color: "006b75"
+  description: "Database driver, connection lifecycle, and SQL execution"
+
+- name: "ox: profiles"
+  color: "0052cc"
+  description: "Connection profile storage, permissions, and switching"
+
+- name: "ox: output"
+  color: "1f883d"
+  description: "Table, JSON, CSV formatting, piping, and encoding"
+
+- name: "ox: ci"
+  color: "bfd4f2"
+  description: "GitHub Actions workflows, linting, type checking, and builds"
+
+# --- Priority ---
+- name: "ox: P0-critical"
+  color: "b60205"
+  description: "Data loss risk, security vulnerability, or broken release"
+
+- name: "ox: P1-high"
+  color: "d93f0b"
+  description: "Major bug or blocker for the next milestone"
+
+- name: "ox: P2-medium"
+  color: "fbca04"
+  description: "Standard priority for upcoming release"
+
+- name: "ox: P3-low"
+  color: "c2e0c6"
+  description: "Minor improvement or non-urgent polish"
+
+# --- Status ---
+- name: "ox: triage"
+  color: "f9d0c4"
+  description: "Needs reproduction, scoping, or domain classification"
+
+- name: "ox: confirmed"
+  color: "0e8a16"
+  description: "Reproduced and accepted for implementation"
+
+- name: "ox: in-progress"
+  color: "0075ca"
+  description: "Actively being worked on"
+
+- name: "ox: blocked"
+  color: "e99695"
+  description: "Waiting on an upstream fix, dependency, or decision"
+
+- name: "ox: duplicate"
+  color: "cfd3d7"
+  description: "Already reported in another issue"
+
+- name: "ox: wontfix"
+  color: "ffffff"
+  description: "Out of scope or intentional behavior"

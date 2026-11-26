@@ -1,0 +1,59 @@
+name: Sync Repository Labels
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/labels.yml'
+      - '.github/workflows/sync-labels.yml'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  sync-labels:
+    name: Sync ox:* Labels
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse labels.yml to JSON
+        run: |
+          python3 -m pip install -q pyyaml
+          python3 -c "import json, yaml; data = yaml.safe_load(open('.github/labels.yml', encoding='utf-8')); open('/tmp/labels.json', 'w', encoding='utf-8').write(json.dumps(data))"
+
+      - name: Sync labels via GitHub API
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const labels = JSON.parse(fs.readFileSync('/tmp/labels.json', 'utf8'));
+            const { owner, repo } = context.repo;
+
+            for (const label of labels) {
+              try {
+                await github.rest.issues.updateLabel({
+                  owner,
+                  repo,
+                  name: label.name,
+                  new_name: label.name,
+                  color: label.color,
+                  description: label.description || ''
+                });
+                console.log(`Updated: ${label.name}`);
+              } catch (err) {
+                if (err.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner,
+                    repo,
+                    name: label.name,
+                    color: label.color,
+                    description: label.description || ''
+                  });
+                  console.log(`Created: ${label.name}`);
+                } else {
+                  throw err;
+                }
+              }
+            }
